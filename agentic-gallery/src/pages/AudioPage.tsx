@@ -1,4 +1,4 @@
-import { Mp3Skin } from "../components/Audio/mp3Skin"
+import { Mp3Skin } from "../components/Audio/Mp3Skin"
 
 export const AudioPage = () => {
     return(
