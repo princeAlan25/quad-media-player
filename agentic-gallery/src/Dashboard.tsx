@@ -8,7 +8,7 @@ export const Dasboard = () => {
     return (
         <BrowserRouter>
             <SideBar />
-            <div className="relative w-[80%] p-5 h-[100%] backdrop-blur-3xl">
+            <div className="relative w-[84%] p-5 h-full backdrop-blur-3xl">
                 <Routes>
                     <Route path="/" Component={AudioPage} />
                     <Route path="/video" Component={VideoPage} />
