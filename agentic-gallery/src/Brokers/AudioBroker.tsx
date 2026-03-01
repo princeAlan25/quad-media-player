@@ -47,12 +47,6 @@ export class AudioBroker {
     playNextAudio(audiosSource: AudioItem[], currentAudioPlayIndex: number): number {
         let prevAudioIndex: number = currentAudioPlayIndex;
         let nextAudioIndex = prevAudioIndex + 1;
-        // const currentPlayingAudio: AudioItem = audiosSource.find((audioItem, audioIndex) => {
-        //     if (audioItem.isPlaying) {
-        //         prevAudioIndex = audioIndex;
-        //         return audioItem;
-        //     }
-        // }) as AudioItem;
 
         if (nextAudioIndex < audiosSource.length) {
             audiosSource = this.setScreenAudioPlayState(audiosSource[nextAudioIndex].url, audiosSource);
@@ -68,12 +62,6 @@ export class AudioBroker {
     playPreviousAudio(audiosSource: AudioItem[], currentAudioPlayIndex: number): number {
         let currentAudioIndex: number = currentAudioPlayIndex;
         let prevAudioIndex = currentAudioIndex > 0 ? currentAudioIndex - 1 : 0;
-        // const currentPlayingAudio: AudioItem = audiosSource.find((audioItem, audioIndex) => {
-        //     if (audioItem.isPlaying) {
-        //         prevAudioIndex = audioIndex;
-        //         return audioItem;
-        //     }
-        // }) as AudioItem;
 
         if (prevAudioIndex < audiosSource.length) {
             audiosSource = this.setScreenAudioPlayState(audiosSource[prevAudioIndex].url, audiosSource);
@@ -83,7 +71,30 @@ export class AudioBroker {
         }
 
         return prevAudioIndex;
+    }
 
+
+    playSongRepeatedly(audioSource: AudioItem[], repeatSongFlag: number, currentAudioPlayIndex: number): number {
+        const audioElement: HTMLAudioElement = document.getElementById("audioElement") as HTMLAudioElement;
+        console.log("In INDEX: ", currentAudioPlayIndex);
+        currentAudioPlayIndex = currentAudioPlayIndex < 0 ? 0 : currentAudioPlayIndex;
+        audioElement.onended = () => {
+            switch (repeatSongFlag) {
+                case 1:
+                    currentAudioPlayIndex = this.playNextAudio(audioSource, currentAudioPlayIndex);
+                    console.log("playing next song...");
+                    break;
+                case 2:
+                    currentAudioPlayIndex = this.playNextAudio(audioSource, currentAudioPlayIndex - 1);
+                    console.log("playing current song...");
+                    break;
+                default:
+                    console.log("nothing to iterate...");
+                    break;
+            }
+            return currentAudioPlayIndex;
+        }
+        return currentAudioPlayIndex;
     }
 
 }

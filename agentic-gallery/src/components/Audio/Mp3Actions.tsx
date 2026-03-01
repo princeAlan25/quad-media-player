@@ -6,8 +6,9 @@ import {
     FaBackwardStep,
     FaRepeat,
     FaShuffle,
-    FaPause
+    FaPause,
 } from 'react-icons/fa6';
+import { MdRepeatOne } from 'react-icons/md';
 import { useAudioSync } from '../../Shared/AudioSyncContextProvider';
 import type { AudioItem } from '../../Interfaces/AudioItem';
 
@@ -28,7 +29,8 @@ const Slider = () => {
 const ActionButtons = () => {
     const [playAudioBtnState, setPlayAudioBtnState] = useState(false);
     const { audioSyncState, setAudioSyncState } = useAudioSync();
-    const [audioIndex, setAudioIndex] = useState<number>(getCurrentAudioIndex);
+    const [audioIndex, setAudioIndex] = useState<number>(0);
+    const [repeatSong, setRepeatSong] = useState(0);
 
     function getCurrentAudioIndex(): number {
         const currentIndex: number = (audioSyncState?.screenAudioItems.findIndex((audioItem, index) => {
@@ -43,31 +45,45 @@ const ActionButtons = () => {
         setPlayAudioBtnState(prevPlayState => !prevPlayState);
     }
 
-    function playNextAudio(currentAudioIndex: number) {
+    function playNexAudio(currentAudioIndex: number) {
         const newAudioIndex: number = audioBroker.playNextAudio(audioSyncState?.screenAudioItems as AudioItem[], currentAudioIndex);
         setAudioIndex(newAudioIndex);
-        setAudioSyncState({ screenAudioItems: audioSyncState?.screenAudioItems as AudioItem[], trashAudioItems: audioSyncState?.trashAudioItems as AudioItem[] })
+        setAudioSyncState({ screenAudioItems: audioSyncState?.screenAudioItems as AudioItem[], trashAudioItems: audioSyncState?.trashAudioItems as AudioItem[], repeatSongs: audioSyncState?.repeatSongs, shuffle: audioSyncState?.shuffle })
     }
 
     function playPrevAudio(currentAudioIndex: number) {
         const newAudioIndex: number = audioBroker.playPreviousAudio(audioSyncState?.screenAudioItems as AudioItem[], currentAudioIndex);
         setAudioIndex(newAudioIndex);
-        setAudioSyncState({ screenAudioItems: audioSyncState?.screenAudioItems as AudioItem[], trashAudioItems: audioSyncState?.trashAudioItems as AudioItem[] })
+        setAudioSyncState({ screenAudioItems: audioSyncState?.screenAudioItems as AudioItem[], trashAudioItems: audioSyncState?.trashAudioItems as AudioItem[], repeatSongs: audioSyncState?.repeatSongs, shuffle: audioSyncState?.shuffle })
+    }
+
+    function repeatSongs() {
+        if (repeatSong > 1) {
+            setRepeatSong(0);
+        }
+        else {
+            setRepeatSong(prevState => prevState + 1);
+        }
+        setAudioSyncState({ screenAudioItems: audioSyncState?.screenAudioItems as AudioItem[], trashAudioItems: audioSyncState?.trashAudioItems as AudioItem[], repeatSongs: repeatSong, shuffle: audioSyncState?.shuffle });
     }
 
     useEffect(() => {
         setAudioIndex(getCurrentAudioIndex());
-    }, [audioSyncState, audioIndex])
+        if (repeatSong != 0) {
+            const repeatedAudioIndex: number = audioBroker.playSongRepeatedly(audioSyncState?.screenAudioItems as AudioItem[], repeatSong, getCurrentAudioIndex());
+            setAudioIndex(repeatedAudioIndex);
+        }
+    }, [audioSyncState, audioIndex, repeatSong])
 
     return (
         <div className="w-[60%] h-[80%] rounded-lg shadow-md mt-10 flex flex-col justify-evenly bg-linear-to-r from-transparent via-white/40 to-transparent *:w-full *:h-[25%] [&_button]:active:scale-95 [&_button]:cursor-pointer [&_button]:hover:bg-black/10">
             <div className="flex justify-center">
-                <button title="Repeat" className='text-black p-5 rounded-full shadow'><FaRepeat /></button>
+                <button title="Repeat" className={repeatSong > 0 ? "p-5 rounded-full text-green-200 shadow-md shadow-green-200" : "p-5 rounded-full shadow text-black"} onClick={repeatSongs}>{repeatSong > 1 ? <MdRepeatOne /> : <FaRepeat />}</button>
             </div>
             <div className="flex justify-evenly">
-                <button title="Previous" className='text-black p-5 rounded-full shadow' onClick={() => playPrevAudio(audioIndex)}><FaBackwardStep /></button>
+                <button title="Previous" className='text-black p-5 rounded-full shadow' onClick={() => playPrevAudio(getCurrentAudioIndex())}><FaBackwardStep /></button>
                 <button title="Play" className='text-black p-5 rounded-full shadow' onClick={changePlayBtnState}>{(audioSyncState?.screenAudioItems.some(audioItem => audioItem.isPlaying)) || playAudioBtnState ? <FaPause /> : <FaPlay />}</button>
-                <button title="Next" className='text-black p-5 rounded-full shadow' onClick={() => playNextAudio(audioIndex)}><FaForwardStep /></button>
+                <button title="Next" className='text-black p-5 rounded-full shadow' onClick={() => playNexAudio(getCurrentAudioIndex())}><FaForwardStep /></button>
             </div>
             <div className="flex justify-center">
                 <button title="Shuffle" className='text-black p-5 rounded-full shadow'><FaShuffle /></button>

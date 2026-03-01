@@ -13,7 +13,7 @@ export const Mp3ScreenAudioItem = ({ audioItem, audioRemoverHandler, currentAudi
 
     useEffect(() => {
         const updatedAudiosState: AudioItem[] = audioBroker.setScreenAudioPlayState(audioUrl, audioSyncState?.screenAudioItems as unknown as AudioItem[]);
-        setAudioSyncState({ screenAudioItems: updatedAudiosState as AudioItem[], trashAudioItems: audioSyncState?.trashAudioItems as AudioItem[] })
+        setAudioSyncState({ screenAudioItems: updatedAudiosState as AudioItem[], trashAudioItems: audioSyncState?.trashAudioItems as AudioItem[], repeatSongs: audioSyncState?.repeatSongs , shuffle: audioSyncState?.shuffle })
     }, [audioItemClicked])
 
     return (

@@ -1,8 +1,6 @@
-import { useReducer } from "react";
 import type { AudioItem } from "../../Interfaces/AudioItem"
 import { useAudioSync } from "../../Shared/AudioSyncContextProvider"
 import { Mp3ScreenAudioItem } from "./Mp3ScreenAudioItem";
-import AudioMocks from "../../DataSource/AudioStorage.json";
 
 
 export const Mp3ScreenAudiosList = () => {
@@ -10,7 +8,7 @@ export const Mp3ScreenAudiosList = () => {
 
     //remove the audio from mp3 player screen
     function RemoveAudioSync(audioItem: AudioItem) {
-        setAudioSyncState({ screenAudioItems: audioSyncState?.screenAudioItems.filter(item => item != audioItem) as AudioItem[], trashAudioItems: audioSyncState?.trashAudioItems.concat(...audioSyncState?.screenAudioItems.filter(item => item.id == audioItem.id) as AudioItem[]) as AudioItem[] });
+        setAudioSyncState({ screenAudioItems: audioSyncState?.screenAudioItems.filter(item => item != audioItem) as AudioItem[], trashAudioItems: audioSyncState?.trashAudioItems.concat(...audioSyncState?.screenAudioItems.filter(item => item.id == audioItem.id) as AudioItem[]) as AudioItem[], repeatSongs: audioSyncState?.repeatSongs , shuffle: audioSyncState?.shuffle});
     }
 
     return (
