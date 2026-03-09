@@ -1,6 +1,6 @@
 import { useCallback, useEffect, memo } from 'react';
 import { useAudioPlayer } from '../../Hooks/useAudioPlayer';
-import type { RepeatMode } from '../../Hooks/useAudioPlayer';
+import type { RepeatMode } from '../../Types/RepeatMode';
 import type { AudioItem } from '../../Interfaces/AudioItem';
 import AudiosMocks from '../../DataSource/AudioStorage.json';
 import { PlaylistPanel } from './PlaylistPanel';

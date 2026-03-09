@@ -7,7 +7,7 @@ import {
   FaRepeat
 } from 'react-icons/fa6';
 import { MdRepeatOne, MdShuffle } from 'react-icons/md';
-import type { RepeatMode } from '../../Hooks/useAudioPlayer';
+import type { RepeatMode } from '../../Types/RepeatMode';
 
 interface AudioControlButtonsProps {
   isPlaying: boolean;

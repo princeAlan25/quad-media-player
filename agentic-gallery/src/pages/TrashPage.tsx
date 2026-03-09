@@ -2,7 +2,7 @@ import type React from 'react';
 import { useMemo } from 'react';
 import { FaMusic, FaVideo, FaImage, FaArrowRotateLeft, FaTrash, FaBroom } from 'react-icons/fa6';
 import { useMediaLibrary } from '../Shared/MediaContextProvider';
-import type { TrashEntry, TrashItemType } from '../Interfaces/TrashItem';
+import type { TrashEntry, TrashItemType } from '../Types/TrashItem';
 
 const typeMeta: Record<TrashItemType, { label: string; icon: React.ComponentType<{ className?: string }>; accent: string; bg: string }> = {
   audio: { label: 'Audio', icon: FaMusic, accent: 'text-emerald-300', bg: 'bg-emerald-500/15' },

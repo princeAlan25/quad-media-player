@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { RepeatMode } from '../../Hooks/useAudioPlayer';
+import type { RepeatMode } from '../../Types/RepeatMode';
 import { AudioProgressBar } from './AudioProgressBar';
 import { AudioVolumeControl } from './AudioVolumeControl';
 import { AudioControlButtons } from './AudioControlButtons';

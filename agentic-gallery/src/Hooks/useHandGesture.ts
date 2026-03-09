@@ -2,44 +2,8 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Hands } from '@mediapipe/hands';
 import { Camera } from '@mediapipe/camera_utils';
 import type { Results } from '@mediapipe/hands';
-
-export type GestureType = 
-  | 'open_palm'
-  | 'fist'
-  | 'pointing_up'
-  | 'thumbs_up'
-  | 'thumbs_down'
-  | 'ok_sign'
-  | 'peace_sign'
-  | 'ily_sign'
-  | 'pointing_right'
-  | 'pointing_left'
-  | 'none';
-
-interface GestureAction {
-  gesture: GestureType;
-  action: () => void;
-  cooldown?: number;
-}
-
-interface UseHandGestureOptions {
-  videoElement?: HTMLVideoElement | null;
-  onGesture?: (gesture: GestureType) => void;
-  enabled?: boolean;
-}
-
-interface UseHandGestureReturn {
-  isLoading: boolean;
-  isTracking: boolean;
-  currentGesture: GestureType;
-  handResults: Results | null;
-  error: string | null;
-  startTracking: () => Promise<void>;
-  stopTracking: () => void;
-  gestureActions: GestureAction[];
-  registerAction: (action: GestureAction) => void;
-  unregisterAction: (gesture: GestureType) => void;
-}
+import type { GestureType } from '../Types/GestureType';
+import type { GestureAction, UseHandGestureOptions, UseHandGestureReturn } from '../Interfaces/UseHandGesture';
 
 export const useHandGesture = (options: UseHandGestureOptions = {}): UseHandGestureReturn => {
   const { videoElement, onGesture, enabled = true } = options;
