@@ -1,5 +1,10 @@
+import { VideoPlayer } from "../components/Video/VideoPlayer"
+
 export const VideoPage = () => {
-    return(
-        <h1>Video page</h1>
+    return (
+        <div className="w-full h-full">
+            <VideoPlayer />
+        </div>
     )
 }
+

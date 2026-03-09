@@ -1,5 +1,10 @@
+import { ImageGallery } from "../components/Image/ImageGallery"
+
 export const ImagePage = () => {
-    return(
-        <h1>Image page</h1>
+    return (
+        <div className="w-full h-full">
+            <ImageGallery />
+        </div>
     )
 }
+
