@@ -7,18 +7,7 @@ import {
   FaRepeat
 } from 'react-icons/fa6';
 import { MdRepeatOne, MdShuffle } from 'react-icons/md';
-import type { RepeatMode } from '../../Types/RepeatMode';
-
-interface AudioControlButtonsProps {
-  isPlaying: boolean;
-  repeatMode: RepeatMode;
-  shuffle: boolean;
-  onPlayPause: () => void;
-  onNext: () => void;
-  onPrevious: () => void;
-  onRepeatToggle: () => void;
-  onShuffleToggle: () => void;
-}
+import type { AudioControlButtonsProps } from '../../Interfaces/AudioControlButtonsProps';
 
 export const AudioControlButtons: React.FC<AudioControlButtonsProps> = memo(({
   isPlaying,

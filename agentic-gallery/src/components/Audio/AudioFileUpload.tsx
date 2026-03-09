@@ -1,10 +1,7 @@
 import { useCallback, useRef, memo } from 'react';
 import { FaCloudUploadAlt } from 'react-icons/fa';
+import type { AudioFileUploadProps } from '../../Interfaces/AudioFileUploadProps';
 import type { AudioItem } from '../../Interfaces/AudioItem';
-
-interface AudioFileUploadProps {
-  onFilesSelected: (files: AudioItem[]) => void;
-}
 
 export const AudioFileUpload: React.FC<AudioFileUploadProps> = memo(({ onFilesSelected }) => {
   const inputRef = useRef<HTMLInputElement>(null);

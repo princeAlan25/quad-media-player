@@ -1,9 +1,6 @@
 import { useCallback, useRef, memo } from 'react';
 import { FaCloudUploadAlt } from 'react-icons/fa';
-
-interface VideoFileUploadProps {
-  onFilesSelected: (files: File[]) => void;
-}
+import type { VideoFileUploadProps } from '../../Interfaces/VideoFileUploadProps';
 
 export const VideoFileUpload: React.FC<VideoFileUploadProps> = memo(({ onFilesSelected }) => {
   const inputRef = useRef<HTMLInputElement>(null);

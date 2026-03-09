@@ -3,11 +3,8 @@ import { VideoPlayerControls } from './VideoPlayerControls';
 import { VideoFileUpload } from './VideoFileUpload';
 import { useMediaLibrary } from '../../Shared/MediaContextProvider';
 import type { VideoItem } from '../../Interfaces/VideoItem';
+import type { VideoPlayerProps } from '../../Interfaces/VideoPlayerProps';
 import { FaTrash } from 'react-icons/fa6';
-
-interface VideoPlayerProps {
-  initialVideoUrl?: string;
-}
 
 const VideoPlayerContent: React.FC<VideoPlayerProps> = ({ initialVideoUrl }) => {
   const videoRef = useRef<HTMLVideoElement>(null);

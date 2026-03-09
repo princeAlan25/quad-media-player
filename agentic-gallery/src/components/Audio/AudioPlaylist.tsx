@@ -1,14 +1,7 @@
 import { memo, useCallback } from 'react';
 import { FaPause, FaTrash, FaMusic } from 'react-icons/fa';
 import type { AudioItem } from '../../Interfaces/AudioItem';
-
-interface AudioPlaylistProps {
-  audios: AudioItem[];
-  currentAudioId?: number;
-  isPlaying: boolean;
-  onSelect: (audio: AudioItem) => void;
-  onRemove: (audio: AudioItem) => void;
-}
+import type { AudioPlaylistProps } from '../../Interfaces/AudioPlaylistProps';
 
 export const AudioPlaylist: React.FC<AudioPlaylistProps> = memo(({
   audios,

@@ -1,9 +1,5 @@
 import { memo } from 'react';
-import type { AudioItem } from '../../Interfaces/AudioItem';
-
-interface NowPlayingInfoProps {
-  audio?: AudioItem | null;
-}
+import type { NowPlayingInfoProps } from '../../Interfaces/NowPlayingInfoProps';
 
 export const NowPlayingInfo: React.FC<NowPlayingInfoProps> = memo(({ audio }) => {
   if (!audio) return null;

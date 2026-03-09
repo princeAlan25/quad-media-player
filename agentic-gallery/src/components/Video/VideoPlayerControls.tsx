@@ -8,21 +8,7 @@ import {
   FaForward
 } from 'react-icons/fa6';
 import { IoVolumeHigh, IoVolumeMute } from 'react-icons/io5';
-
-interface VideoPlayerControlsProps {
-  isPlaying: boolean;
-  isMuted: boolean;
-  isFullscreen: boolean;
-  currentTime: number;
-  duration: number;
-  volume: number;
-  onPlayPause: () => void;
-  onMuteToggle: () => void;
-  onFullscreenToggle: () => void;
-  onSeek: (time: number) => void;
-  onVolumeChange: (volume: number) => void;
-  onSkip: (seconds: number) => void;
-}
+import type { VideoPlayerControlsProps } from '../../Interfaces/VideoPlayerControlsProps';
 
 export const VideoPlayerControls: React.FC<VideoPlayerControlsProps> = memo(({
   isPlaying,

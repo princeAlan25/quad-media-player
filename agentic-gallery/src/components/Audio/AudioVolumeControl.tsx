@@ -1,12 +1,6 @@
 import { useCallback, memo } from 'react';
 import { FaVolumeUp, FaVolumeMute, FaVolumeDown } from 'react-icons/fa';
-
-interface AudioVolumeControlProps {
-  volume: number;
-  isMuted: boolean;
-  onVolumeChange: (volume: number) => void;
-  onMuteToggle: () => void;
-}
+import type { AudioVolumeControlProps } from '../../Interfaces/AudioVolumeControlProps';
 
 export const AudioVolumeControl: React.FC<AudioVolumeControlProps> = memo(({ 
   volume, 

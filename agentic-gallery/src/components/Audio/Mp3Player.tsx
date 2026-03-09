@@ -2,14 +2,11 @@ import { useCallback, useEffect, memo } from 'react';
 import { useAudioPlayer } from '../../Hooks/useAudioPlayer';
 import type { RepeatMode } from '../../Types/RepeatMode';
 import type { AudioItem } from '../../Interfaces/AudioItem';
+import type { Mp3PlayerProps } from '../../Interfaces/Mp3PlayerProps';
 import AudiosMocks from '../../DataSource/AudioStorage.json';
 import { PlaylistPanel } from './PlaylistPanel';
 import { NowPlayingInfo } from './NowPlayingInfo';
 import { PlaybackSection } from './PlaybackSection';
-
-interface Mp3PlayerProps {
-  initialAudios?: AudioItem[];
-}
 
 // Memoized internal player component
 const Mp3PlayerContent: React.FC<{ initialAudios?: AudioItem[] }> = ({ initialAudios }) => {

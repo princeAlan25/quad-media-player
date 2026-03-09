@@ -2,15 +2,7 @@ import { memo, useCallback } from 'react';
 import { AudioFileUpload } from './AudioFileUpload';
 import { AudioPlaylist } from './AudioPlaylist';
 import type { AudioItem } from '../../Interfaces/AudioItem';
-
-interface PlaylistPanelProps {
-  audios: AudioItem[];
-  currentAudioId?: number;
-  isPlaying: boolean;
-  onSelect: (audio: AudioItem) => void;
-  onRemove: (audio: AudioItem) => void;
-  onUpload: (audioItems: AudioItem[]) => void;
-}
+import type { PlaylistPanelProps } from '../../Interfaces/PlaylistPanelProps';
 
 export const PlaylistPanel: React.FC<PlaylistPanelProps> = memo(({
   audios,

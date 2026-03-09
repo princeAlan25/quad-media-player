@@ -1,26 +1,8 @@
 import { memo } from 'react';
-import type { RepeatMode } from '../../Types/RepeatMode';
+import type { PlaybackSectionProps } from '../../Interfaces/PlaybackSectionProps';
 import { AudioProgressBar } from './AudioProgressBar';
 import { AudioVolumeControl } from './AudioVolumeControl';
 import { AudioControlButtons } from './AudioControlButtons';
-
-interface PlaybackSectionProps {
-  currentTime: number;
-  duration: number;
-  volume: number;
-  isMuted: boolean;
-  isPlaying: boolean;
-  repeatMode: RepeatMode;
-  shuffle: boolean;
-  onSeek: (time: number) => void;
-  onVolumeChange: (volume: number) => void;
-  onMuteToggle: () => void;
-  onPlayPause: () => void;
-  onNext: () => void;
-  onPrevious: () => void;
-  onRepeatToggle: () => void;
-  onShuffleToggle: () => void;
-}
 
 export const PlaybackSection: React.FC<PlaybackSectionProps> = memo(({
   currentTime,

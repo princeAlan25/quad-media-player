@@ -1,10 +1,5 @@
 import { useCallback, memo, useMemo } from 'react';
-
-interface AudioProgressBarProps {
-  currentTime: number;
-  duration: number;
-  onSeek: (time: number) => void;
-}
+import type { AudioProgressBarProps } from '../../Interfaces/AudioProgressBarProps';
 
 const formatTime = (time: number): string => {
   if (isNaN(time) || !isFinite(time)) return '0:00';
