@@ -11,6 +11,7 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     replaceAudios,
     addAudios: addAudiosToLibrary,
     removeAudio: removeAudioFromLibrary,
+    focusRequest,
   } = useMediaLibrary();
   
   const [currentIndex, setCurrentIndexState] = useState<number>(0);
@@ -225,6 +226,17 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
       audioRef.current?.play().catch(console.error);
     }
   }, [currentAudio, isPlaying]);
+
+  useEffect(() => {
+    if (focusRequest?.type !== 'audio') {
+      return;
+    }
+
+    const requestedIndex = audios.findIndex(audio => audio.id === focusRequest.id);
+    if (requestedIndex >= 0) {
+      setCurrentIndex(requestedIndex, focusRequest.autoplay);
+    }
+  }, [audios, focusRequest, setCurrentIndex]);
 
   return {
     currentAudio,

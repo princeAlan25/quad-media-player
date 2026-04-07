@@ -5,7 +5,7 @@ import { useMediaLibrary } from '@/entities/media';
 import type { ImageItem } from '@/shared/types/ImageItem';
 
 const ImageGalleryContent = () => {
-  const { images, addImages: addImagesToLibrary, removeImage: removeImageFromLibrary } = useMediaLibrary();
+  const { images, addImages: addImagesToLibrary, removeImage: removeImageFromLibrary, focusRequest } = useMediaLibrary();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -118,6 +118,18 @@ const ImageGalleryContent = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (focusRequest?.type !== 'image') {
+      return;
+    }
+
+    const requestedIndex = images.findIndex(image => image.id === focusRequest.id);
+    if (requestedIndex >= 0) {
+      setCurrentIndex(requestedIndex);
+      setShowControls(true);
+    }
+  }, [focusRequest, images]);
 
   if (images.length === 0) {
     return (

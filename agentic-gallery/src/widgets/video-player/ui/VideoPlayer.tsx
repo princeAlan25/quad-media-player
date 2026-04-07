@@ -11,7 +11,7 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const initialSeededRef = useRef(false);
 
-  const { videos, addVideos: addVideosToLibrary, removeVideo: removeVideoFromLibrary } = useMediaLibrary();
+  const { videos, addVideos: addVideosToLibrary, removeVideo: removeVideoFromLibrary, focusRequest } = useMediaLibrary();
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentVideo = useMemo(() => videos[currentIndex] ?? null, [videos, currentIndex]);
 
@@ -200,6 +200,19 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
       el.play().catch(() => undefined);
     }
   }, [currentVideo, isPlaying]);
+
+  useEffect(() => {
+    if (focusRequest?.type !== 'video') {
+      return;
+    }
+
+    const requestedIndex = videos.findIndex(video => video.id === focusRequest.id);
+    if (requestedIndex >= 0) {
+      setCurrentIndex(requestedIndex);
+      setIsPlaying(focusRequest.autoplay);
+      setShowControls(true);
+    }
+  }, [focusRequest, videos]);
 
   if (!currentVideo) {
     return (
