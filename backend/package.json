@@ -7,10 +7,9 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx tsc",
+    "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "dev": "nodemon src/server.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "dependencies": {
     "@openrouter/sdk": "^0.4.0",
