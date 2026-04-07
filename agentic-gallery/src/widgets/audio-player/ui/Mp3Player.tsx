@@ -1,15 +1,18 @@
 import { useCallback, useEffect, memo } from 'react';
-import { useAudioPlayer } from '../../Hooks/useAudioPlayer';
-import type { RepeatMode } from '../../Types/RepeatMode';
-import type { AudioItem } from '../../Interfaces/AudioItem';
-import type { Mp3PlayerProps } from '../../Interfaces/Mp3PlayerProps';
-import AudiosMocks from '../../DataSource/AudioStorage.json';
+import { useAudioPlayer } from '@/features/audio-player/model/useAudioPlayer';
+import type { RepeatMode } from '@/shared/types/RepeatMode';
+import type { AudioItem } from '@/shared/types/AudioItem';
+import type { Mp3PlayerProps } from '@/shared/types/Mp3PlayerProps';
 import { PlaylistPanel } from './PlaylistPanel';
 import { NowPlayingInfo } from './NowPlayingInfo';
 import { PlaybackSection } from './PlaybackSection';
 
 // Memoized internal player component
-const Mp3PlayerContent: React.FC<{ initialAudios?: AudioItem[] }> = ({ initialAudios }) => {
+interface Mp3PlayerContentProps {
+  initialAudios?: AudioItem[];
+}
+
+const Mp3PlayerContent = ({ initialAudios }: Mp3PlayerContentProps) => {
   const {
     currentAudio,
     playlist,
@@ -35,17 +38,29 @@ const Mp3PlayerContent: React.FC<{ initialAudios?: AudioItem[] }> = ({ initialAu
     setCurrentIndex,
   } = useAudioPlayer();
 
-  // Load initial audios
   useEffect(() => {
-    const seedAudios = initialAudios || (AudiosMocks as AudioItem[]);
-    if (playlist.length === 0 && seedAudios.length > 0) {
-      loadAudios(seedAudios);
+    if (initialAudios && playlist.length === 0 && initialAudios.length > 0) {
+      loadAudios(initialAudios);
     }
   }, [initialAudios, loadAudios, playlist.length]);
 
-  const handleFilesSelected = useCallback((newAudios: AudioItem[]) => {
-    addAudios(newAudios, playlist.length === 0);
-  }, [addAudios, playlist.length]);
+  const handleFilesSelected = useCallback((files: File[]) => {
+    const uploadedAudios: AudioItem[] = files.map((file, index) => ({
+      id: `manual-audio-${Date.now()}-${index}`,
+      title: file.name.replace(/\.[^/.]+$/, ''),
+      artist: 'Manual Upload',
+      url: URL.createObjectURL(file),
+      mimeType: file.type,
+      size: file.size,
+      modifiedAt: file.lastModified,
+      relativePath: file.name,
+      sourceLabel: 'Manual Upload',
+      origin: 'manual-upload',
+      keywords: [file.name.toLowerCase()],
+    }));
+
+    addAudios(uploadedAudios, playlist.filter(audio => audio.origin !== 'seed').length === 0);
+  }, [addAudios, playlist]);
 
   const handleSelectAudio = useCallback((audio: AudioItem) => {
     const index = playlist.findIndex(a => a.id === audio.id);
@@ -123,10 +138,8 @@ const Mp3PlayerContent: React.FC<{ initialAudios?: AudioItem[] }> = ({ initialAu
 
 Mp3PlayerContent.displayName = 'Mp3PlayerContent';
 
-export const Mp3Player: React.FC<Mp3PlayerProps> = memo(({ initialAudios }) => {
+export const Mp3Player = memo(function Mp3Player({ initialAudios }: Mp3PlayerProps) {
   return (
     <Mp3PlayerContent initialAudios={initialAudios} />
   );
 });
-
-Mp3Player.displayName = 'Mp3Player';
