@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import type { MediaSystemScanner, SystemScanResult } from '../../application/media/contracts';
 import type { MediaAnalysisStats, MediaDocument, MediaSyncSource, MediaType } from '../../domain/media/types';
+import type { MediaAnalyzer } from '../analysis/MediaAnalyzer';
 
 const COMMON_ROOT_NAMES = ['Desktop', 'Documents', 'Downloads', 'Music', 'Pictures', 'Videos'] as const;
 const SKIPPED_DIRECTORY_NAMES = new Set([
@@ -250,36 +251,45 @@ async function walkRoot(
 }
 
 export class FileSystemMediaScanner implements MediaSystemScanner {
+  constructor(private readonly analyzer: MediaAnalyzer) {}
+
   async scanSystemSources(): Promise<SystemScanResult> {
     const roots = await discoverRoots();
     const summaries: SystemScanResult['summaries'] = [];
     const sourceEntries: SystemScanResult['sourceEntries'] = [];
     let skippedEntries = 0;
+    let analysis = emptyAnalysisStats();
 
     for (const root of roots) {
       const result = await walkRoot(root.source, root.rootPath);
+      const enriched = await this.analyzer.enrichDocuments(result.documents);
       skippedEntries += result.skippedEntries;
-
-      if (result.documents.length === 0) {
-        continue;
-      }
-
       sourceEntries.push({
         source: root.source,
-        documents: result.documents,
+        documents: enriched.documents,
       });
       summaries.push({
         source: root.source,
         rootPath: root.rootPath,
-        itemCount: result.documents.length,
+        itemCount: enriched.documents.length,
       });
+
+      const model = enriched.stats.model ?? analysis.model;
+      analysis = {
+        enabled: analysis.enabled || enriched.stats.enabled,
+        ...(model ? { model } : {}),
+        analyzed: analysis.analyzed + enriched.stats.analyzed,
+        cached: analysis.cached + enriched.stats.cached,
+        skipped: analysis.skipped + enriched.stats.skipped,
+        failed: analysis.failed + enriched.stats.failed,
+      };
     }
 
     return {
       summaries,
       sourceEntries,
       skippedEntries,
-      analysis: emptyAnalysisStats(),
+      analysis,
     };
   }
 }
