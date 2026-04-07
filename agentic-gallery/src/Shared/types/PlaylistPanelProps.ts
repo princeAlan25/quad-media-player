@@ -1,10 +1,11 @@
 import type { AudioItem } from './AudioItem';
 
-export interface AudioPlaylistProps {
+export interface PlaylistPanelProps {
   audios: AudioItem[];
-  currentAudioId?: number;
+  currentAudioId?: string;
   isPlaying: boolean;
   onSelect: (audio: AudioItem) => void;
   onRemove: (audio: AudioItem) => void;
+  onUpload: (files: File[]) => void;
 }
 

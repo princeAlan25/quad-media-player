@@ -1,4 +1,4 @@
-import type { RepeatMode } from '../Types/RepeatMode';
+import type { RepeatMode } from './RepeatMode';
 
 export interface PlaybackSectionProps {
   currentTime: number;
