@@ -1,19 +1,18 @@
 import { memo, useCallback } from 'react';
 import { AudioFileUpload } from './AudioFileUpload';
 import { AudioPlaylist } from './AudioPlaylist';
-import type { AudioItem } from '../../Interfaces/AudioItem';
-import type { PlaylistPanelProps } from '../../Interfaces/PlaylistPanelProps';
+import type { PlaylistPanelProps } from '@/shared/types/PlaylistPanelProps';
 
-export const PlaylistPanel: React.FC<PlaylistPanelProps> = memo(({
+export const PlaylistPanel = memo(function PlaylistPanel({
   audios,
   currentAudioId,
   isPlaying,
   onSelect,
   onRemove,
   onUpload,
-}) => {
-  const handleUpload = useCallback((items: AudioItem[]) => {
-    onUpload(items);
+}: PlaylistPanelProps) {
+  const handleUpload = useCallback((files: File[]) => {
+    onUpload(files);
   }, [onUpload]);
 
   return (
@@ -34,5 +33,3 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = memo(({
     </div>
   );
 });
-
-PlaylistPanel.displayName = 'PlaylistPanel';

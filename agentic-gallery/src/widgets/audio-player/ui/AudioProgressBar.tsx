@@ -1,5 +1,5 @@
 import { useCallback, memo, useMemo } from 'react';
-import type { AudioProgressBarProps } from '../../Interfaces/AudioProgressBarProps';
+import type { AudioProgressBarProps } from '@/shared/types/AudioProgressBarProps';
 
 const formatTime = (time: number): string => {
   if (isNaN(time) || !isFinite(time)) return '0:00';
@@ -8,7 +8,7 @@ const formatTime = (time: number): string => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
-export const AudioProgressBar: React.FC<AudioProgressBarProps> = memo(({ currentTime, duration, onSeek }) => {
+export const AudioProgressBar = memo(function AudioProgressBar({ currentTime, duration, onSeek }: AudioProgressBarProps) {
   const progress = useMemo(() => {
     if (duration === 0) return 0;
     return (currentTime / duration) * 100;
@@ -42,6 +42,4 @@ export const AudioProgressBar: React.FC<AudioProgressBarProps> = memo(({ current
     </div>
   );
 });
-
-AudioProgressBar.displayName = 'AudioProgressBar';
 

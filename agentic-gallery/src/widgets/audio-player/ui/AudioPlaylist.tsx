@@ -1,15 +1,15 @@
 import { memo, useCallback } from 'react';
 import { FaPause, FaTrash, FaMusic } from 'react-icons/fa';
-import type { AudioItem } from '../../Interfaces/AudioItem';
-import type { AudioPlaylistProps } from '../../Interfaces/AudioPlaylistProps';
+import type { AudioItem } from '@/shared/types/AudioItem';
+import type { AudioPlaylistProps } from '@/shared/types/AudioPlaylistProps';
 
-export const AudioPlaylist: React.FC<AudioPlaylistProps> = memo(({
+export const AudioPlaylist = memo(function AudioPlaylist({
   audios,
   currentAudioId,
   isPlaying,
   onSelect,
   onRemove,
-}) => {
+}: AudioPlaylistProps) {
   const handleSelect = useCallback((audio: AudioItem) => {
     onSelect(audio);
   }, [onSelect]);
@@ -74,6 +74,4 @@ export const AudioPlaylist: React.FC<AudioPlaylistProps> = memo(({
     </div>
   );
 });
-
-AudioPlaylist.displayName = 'AudioPlaylist';
 

@@ -1,7 +1,7 @@
 import { memo } from 'react';
-import type { NowPlayingInfoProps } from '../../Interfaces/NowPlayingInfoProps';
+import type { NowPlayingInfoProps } from '@/shared/types/NowPlayingInfoProps';
 
-export const NowPlayingInfo: React.FC<NowPlayingInfoProps> = memo(({ audio }) => {
+export const NowPlayingInfo = memo(function NowPlayingInfo({ audio }: NowPlayingInfoProps) {
   if (!audio) return null;
 
   return (
@@ -11,5 +11,3 @@ export const NowPlayingInfo: React.FC<NowPlayingInfoProps> = memo(({ audio }) =>
     </div>
   );
 });
-
-NowPlayingInfo.displayName = 'NowPlayingInfo';

@@ -1,31 +1,22 @@
 import { useCallback, useRef, memo } from 'react';
 import { FaCloudUploadAlt } from 'react-icons/fa';
-import type { AudioFileUploadProps } from '../../Interfaces/AudioFileUploadProps';
-import type { AudioItem } from '../../Interfaces/AudioItem';
+import type { AudioFileUploadProps } from '@/shared/types/AudioFileUploadProps';
 
-export const AudioFileUpload: React.FC<AudioFileUploadProps> = memo(({ onFilesSelected }) => {
+export const AudioFileUpload = memo(function AudioFileUpload({ onFilesSelected }: AudioFileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
 
-    const audioItems: AudioItem[] = Array.from(files).map((file, index) => ({
-      id: Date.now() + index,
-      title: file.name.replace(/\.[^/.]+$/, ''),
-      artist: 'Local File',
-      url: URL.createObjectURL(file),
-      isPlaying: false,
-    }));
-
-    onFilesSelected(audioItems);
+    onFilesSelected(Array.from(files));
     
     // Reset input
     if (inputRef.current) {
       inputRef.current.value = '';
     }
   }, [onFilesSelected]);
-
+  
   const handleClick = () => {
     inputRef.current?.click();
   };
@@ -51,6 +42,3 @@ export const AudioFileUpload: React.FC<AudioFileUploadProps> = memo(({ onFilesSe
     </div>
   );
 });
-
-AudioFileUpload.displayName = 'AudioFileUpload';
-

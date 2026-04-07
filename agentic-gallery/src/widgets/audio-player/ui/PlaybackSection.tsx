@@ -1,10 +1,10 @@
 import { memo } from 'react';
-import type { PlaybackSectionProps } from '../../Interfaces/PlaybackSectionProps';
+import type { PlaybackSectionProps } from '@/shared/types/PlaybackSectionProps';
 import { AudioProgressBar } from './AudioProgressBar';
 import { AudioVolumeControl } from './AudioVolumeControl';
 import { AudioControlButtons } from './AudioControlButtons';
 
-export const PlaybackSection: React.FC<PlaybackSectionProps> = memo(({
+export const PlaybackSection = memo(function PlaybackSection({
   currentTime,
   duration,
   volume,
@@ -20,7 +20,7 @@ export const PlaybackSection: React.FC<PlaybackSectionProps> = memo(({
   onPrevious,
   onRepeatToggle,
   onShuffleToggle,
-}) => {
+}: PlaybackSectionProps) {
   return (
     <div className="w-full flex flex-col gap-3">
       <AudioProgressBar currentTime={currentTime} duration={duration} onSeek={onSeek} />
@@ -49,5 +49,3 @@ export const PlaybackSection: React.FC<PlaybackSectionProps> = memo(({
     </div>
   );
 });
-
-PlaybackSection.displayName = 'PlaybackSection';

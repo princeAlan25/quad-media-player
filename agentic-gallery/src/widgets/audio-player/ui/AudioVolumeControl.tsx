@@ -1,13 +1,13 @@
 import { useCallback, memo } from 'react';
 import { FaVolumeUp, FaVolumeMute, FaVolumeDown } from 'react-icons/fa';
-import type { AudioVolumeControlProps } from '../../Interfaces/AudioVolumeControlProps';
+import type { AudioVolumeControlProps } from '@/shared/types/AudioVolumeControlProps';
 
-export const AudioVolumeControl: React.FC<AudioVolumeControlProps> = memo(({ 
+export const AudioVolumeControl = memo(function AudioVolumeControl({ 
   volume, 
   isMuted, 
   onVolumeChange, 
   onMuteToggle 
-}) => {
+}: AudioVolumeControlProps) {
   const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -41,6 +41,4 @@ export const AudioVolumeControl: React.FC<AudioVolumeControlProps> = memo(({
     </div>
   );
 });
-
-AudioVolumeControl.displayName = 'AudioVolumeControl';
 

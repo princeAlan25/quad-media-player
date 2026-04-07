@@ -7,9 +7,9 @@ import {
   FaRepeat
 } from 'react-icons/fa6';
 import { MdRepeatOne, MdShuffle } from 'react-icons/md';
-import type { AudioControlButtonsProps } from '../../Interfaces/AudioControlButtonsProps';
+import type { AudioControlButtonsProps } from '@/shared/types/AudioControlButtonsProps';
 
-export const AudioControlButtons: React.FC<AudioControlButtonsProps> = memo(({
+export const AudioControlButtons = memo(function AudioControlButtons({
   isPlaying,
   repeatMode,
   shuffle,
@@ -18,7 +18,7 @@ export const AudioControlButtons: React.FC<AudioControlButtonsProps> = memo(({
   onPrevious,
   onRepeatToggle,
   onShuffleToggle,
-}) => {
+}: AudioControlButtonsProps) {
   const getRepeatIcon = useCallback(() => {
     if (repeatMode === 'one') {
       return <MdRepeatOne className="text-green-400" />;
@@ -79,6 +79,4 @@ export const AudioControlButtons: React.FC<AudioControlButtonsProps> = memo(({
     </div>
   );
 });
-
-AudioControlButtons.displayName = 'AudioControlButtons';
 
