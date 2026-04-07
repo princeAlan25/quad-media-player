@@ -1,6 +1,7 @@
 import { Router, type Request } from 'express';
 import { MediaLibraryService } from '../../application/media/MediaLibraryService';
 import type { MediaSearchRequest, MediaSyncRequest, MediaType } from '../../domain/media/types';
+import { streamMediaFile } from './streamMediaFile';
 
 const VALID_MEDIA_TYPES = new Set<MediaType>(['audio', 'video', 'image']);
 
@@ -64,6 +65,20 @@ export function createMediaRouter({ mediaLibraryService }: CreateMediaRouterDepe
       }
 
       res.json(await mediaLibraryService.getMediaItems(ids));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get('/api/media/file/:mediaId', async (req, res, next) => {
+    try {
+      const document = await mediaLibraryService.getMediaFile(req.params.mediaId);
+      if (!document) {
+        res.status(404).json({ error: 'Media item not found.' });
+        return;
+      }
+
+      await streamMediaFile(req, res, document);
     } catch (error) {
       next(error);
     }

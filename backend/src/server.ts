@@ -20,7 +20,8 @@ app.use(
   cors({
     origin: frontendOrigin,
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type'],
+    allowedHeaders: ['Content-Type', 'Range'],
+    exposedHeaders: ['Accept-Ranges', 'Content-Length', 'Content-Range', 'Content-Type'],
   }),
 );
 app.use(createMediaRouter({ mediaLibraryService }));

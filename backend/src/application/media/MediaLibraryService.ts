@@ -59,6 +59,11 @@ export class MediaLibraryService {
     };
   }
 
+  async getMediaFile(mediaId: string): Promise<MediaDocument | null> {
+    const index = await this.indexRepository.readIndex();
+    return findMediaDocumentById(index.documents, mediaId);
+  }
+
   async getMediaItems(ids: string[]) {
     const index = await this.indexRepository.readIndex();
     const documentsById = new Map(index.documents.map(document => [document.id, document]));
