@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import type { AudioItem } from '../Interfaces/AudioItem';
-import type { RepeatMode } from '../Types/RepeatMode';
-import type { UseAudioPlayerReturn } from '../Interfaces/UseAudioPlayer';
-import { useMediaLibrary } from '../Shared/MediaContextProvider';
+import type { AudioItem } from '@/shared/types/AudioItem';
+import type { RepeatMode } from '@/shared/types/RepeatMode';
+import type { UseAudioPlayerReturn } from '@/shared/types/UseAudioPlayer';
+import { useMediaLibrary } from '@/entities/media';
 
 export const useAudioPlayer = (): UseAudioPlayerReturn => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -10,7 +10,7 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     audios,
     replaceAudios,
     addAudios: addAudiosToLibrary,
-    removeAudio: moveAudioToTrash
+    removeAudio: removeAudioFromLibrary,
   } = useMediaLibrary();
   
   const [currentIndex, setCurrentIndexState] = useState<number>(0);
@@ -149,17 +149,17 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     }
   }, [addAudiosToLibrary, audios.length]);
 
-  const removeAudio = useCallback((id: number) => {
+  const removeAudio = useCallback((id: string) => {
     const indexToRemove = audios.findIndex(audio => audio.id === id);
     if (indexToRemove === -1) return;
-    moveAudioToTrash(id);
+    removeAudioFromLibrary(id);
     setCurrentIndexState(current => {
       if (audios.length <= 1) return 0;
       if (current > indexToRemove) return Math.max(0, current - 1);
       if (current === indexToRemove) return Math.min(indexToRemove, audios.length - 2);
       return current;
     });
-  }, [audios, moveAudioToTrash]);
+  }, [audios, removeAudioFromLibrary]);
 
   // Audio element event handlers
   useEffect(() => {

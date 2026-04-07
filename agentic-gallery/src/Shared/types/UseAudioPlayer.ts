@@ -1,5 +1,5 @@
 import type { AudioItem } from './AudioItem';
-import type { RepeatMode } from '../Types/RepeatMode';
+import type { RepeatMode } from './RepeatMode';
 
 export interface UseAudioPlayerReturn {
   // State
@@ -28,7 +28,7 @@ export interface UseAudioPlayerReturn {
   loadAudio: (audio: AudioItem) => void;
   loadAudios: (audios: AudioItem[], startIndex?: number, autoPlay?: boolean) => void;
   addAudios: (audios: AudioItem[], autoPlay?: boolean) => void;
-  removeAudio: (id: number) => void;
+  removeAudio: (id: string) => void;
   setCurrentIndex: (index: number, autoPlay?: boolean) => void;
 }
 
