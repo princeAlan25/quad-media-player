@@ -6,8 +6,10 @@ import {
   toPublicDocument,
   validateDocuments,
 } from '../../domain/media/catalog';
+import { buildRagContext, searchDocuments } from '../../domain/media/search';
 import type {
   MediaDocument,
+  MediaSearchRequest,
   MediaSyncSource,
   MediaType,
 } from '../../domain/media/types';
@@ -89,6 +91,30 @@ export class MediaLibraryService {
     return {
       sourceId,
       stats: buildStats(nextIndex.documents, nextIndex.updatedAt),
+    };
+  }
+
+  async searchMedia(request: MediaSearchRequest) {
+    const index = await this.indexRepository.readIndex();
+    const matches = searchDocuments(index.documents, request);
+
+    return {
+      query: request.query ?? '',
+      matches,
+      stats: buildStats(index.documents, index.updatedAt),
+    };
+  }
+
+  async buildRagMedia(request: MediaSearchRequest) {
+    const index = await this.indexRepository.readIndex();
+    const matches = searchDocuments(index.documents, request);
+    const context = buildRagContext(index.documents, matches);
+
+    return {
+      query: request.query ?? '',
+      matches,
+      context,
+      stats: buildStats(index.documents, index.updatedAt),
     };
   }
 }

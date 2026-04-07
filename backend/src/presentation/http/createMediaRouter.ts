@@ -1,6 +1,6 @@
 import { Router, type Request } from 'express';
 import { MediaLibraryService } from '../../application/media/MediaLibraryService';
-import type { MediaSyncRequest, MediaType } from '../../domain/media/types';
+import type { MediaSearchRequest, MediaSyncRequest, MediaType } from '../../domain/media/types';
 
 const VALID_MEDIA_TYPES = new Set<MediaType>(['audio', 'video', 'image']);
 
@@ -92,6 +92,22 @@ export function createMediaRouter({ mediaLibraryService }: CreateMediaRouterDepe
       }
 
       res.json(await mediaLibraryService.removeMediaSource(sourceId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post('/api/media/search', async (req: Request<unknown, unknown, MediaSearchRequest>, res, next) => {
+    try {
+      res.json(await mediaLibraryService.searchMedia(req.body ?? {}));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post('/api/media/rag', async (req: Request<unknown, unknown, MediaSearchRequest>, res, next) => {
+    try {
+      res.json(await mediaLibraryService.buildRagMedia(req.body ?? {}));
     } catch (error) {
       next(error);
     }
