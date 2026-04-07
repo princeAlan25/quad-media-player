@@ -5,14 +5,17 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import cors from 'cors';
 import { MediaLibraryService } from './application/media/MediaLibraryService';
 import { FileMediaIndexRepository } from './infrastructure/persistence/FileMediaIndexRepository';
+import { FileSystemMediaScanner } from './infrastructure/scan/FileSystemMediaScanner';
 import { createMediaRouter } from './presentation/http/createMediaRouter';
 
 const app = express();
 const port = Number(process.env.PORT ?? 4000);
 const frontendOrigin = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
 const indexRepository = new FileMediaIndexRepository();
+const systemScanner = new FileSystemMediaScanner();
 const mediaLibraryService = new MediaLibraryService({
   indexRepository,
+  systemScanner,
 });
 
 app.use(express.json());

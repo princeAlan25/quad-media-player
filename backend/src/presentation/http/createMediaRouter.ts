@@ -39,6 +39,14 @@ export function createMediaRouter({ mediaLibraryService }: CreateMediaRouterDepe
     }
   });
 
+  router.post('/api/media/system-scan', async (_req, res, next) => {
+    try {
+      res.status(201).json(await mediaLibraryService.scanSystemSources());
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.get('/api/media/item/:mediaId', async (req, res, next) => {
     try {
       const response = await mediaLibraryService.getMediaItem(req.params.mediaId);

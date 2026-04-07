@@ -13,17 +13,20 @@ import type {
   MediaSyncSource,
   MediaType,
 } from '../../domain/media/types';
-import type { MediaIndexRepository } from './contracts';
+import type { MediaIndexRepository, MediaSystemScanner } from './contracts';
 
 interface MediaLibraryServiceDependencies {
   indexRepository: MediaIndexRepository;
+  systemScanner: MediaSystemScanner;
 }
 
 export class MediaLibraryService {
   private readonly indexRepository: MediaIndexRepository;
+  private readonly systemScanner: MediaSystemScanner;
 
-  constructor({ indexRepository }: MediaLibraryServiceDependencies) {
+  constructor({ indexRepository, systemScanner }: MediaLibraryServiceDependencies) {
     this.indexRepository = indexRepository;
+    this.systemScanner = systemScanner;
   }
 
   async getHealth() {
@@ -43,6 +46,25 @@ export class MediaLibraryService {
     return {
       documents: documents.map(toPublicDocument),
       stats: buildStats(documents, index.updatedAt),
+    };
+  }
+
+  async scanSystemSources() {
+    const scanResult = await this.systemScanner.scanSystemSources();
+    const index = await this.replaceSourceDocumentsBatch(scanResult.sourceEntries);
+
+    return {
+      scannedSources: scanResult.summaries.length,
+      scannedItems: scanResult.summaries.reduce((total, summary) => total + summary.itemCount, 0),
+      skippedEntries: scanResult.skippedEntries,
+      sources: scanResult.summaries.map(summary => ({
+        id: summary.source.id,
+        label: summary.source.label,
+        rootPath: summary.rootPath,
+        itemCount: summary.itemCount,
+      })),
+      analysis: scanResult.analysis,
+      stats: buildStats(index.documents, index.updatedAt),
     };
   }
 
@@ -121,5 +143,12 @@ export class MediaLibraryService {
       context,
       stats: buildStats(index.documents, index.updatedAt),
     };
+  }
+
+  private async replaceSourceDocumentsBatch(sourceEntries: Array<{ source: MediaSyncSource; documents: MediaDocument[] }>) {
+    const current = await this.indexRepository.readIndex();
+    const nextIndex = replaceDocumentsForSources(current, sourceEntries);
+    await this.indexRepository.saveIndex(nextIndex);
+    return nextIndex;
   }
 }
