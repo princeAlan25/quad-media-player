@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { AgentPage } from '@/pages/agent'
 import { AudioPage } from '@/pages/audio'
 import { ImagePage } from '@/pages/image'
 import { VideoPage } from '@/pages/video'
@@ -13,6 +14,7 @@ export const AppShell = () => {
         <Sidebar />
         <div className={shellPanelClass}>
           <Routes>
+            <Route path="/agent" Component={AgentPage} />
             <Route path="/" Component={AudioPage} />
             <Route path="/video" Component={VideoPage} />
             <Route path="/image" Component={ImagePage} />
