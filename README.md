@@ -14,7 +14,7 @@ This repository utilizes a multi-branch strategy to host and optimize the player
 **Why?**
 The legacy version was built as a lightweight, zero-dependency proof of concept. It focused on the core logic of media handling without the overhead of modern frameworks, ensuring maximum compatibility and fast load times for simple environments.
 
-<a hreh="https://quad-media-player.netlify.app/">
+<a href="https://quad-media-player.netlify.app/">
   <kbd>
     <img src="assets/Screenshot 2026-01-02 133925.png" alt="Legacy Player Preview" width="600">
   </kbd>
