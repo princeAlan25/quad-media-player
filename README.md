@@ -8,19 +8,21 @@ Universal media hub designed for seamless audio/video playback, image viewing, a
 
 This repository utilizes a multi-branch strategy to host and optimize the player for different platforms and capabilities.
 
-### 1. Legacy Version (Vanilla)
+### 1. <a href="https://quad-media-player.netlify.app/"> Legacy Version (Vanilla)</a>
 *Built with HTML, CSS, and Plain JavaScript.*
 
 **Why?**
 The legacy version was built as a lightweight, zero-dependency proof of concept. It focused on the core logic of media handling without the overhead of modern frameworks, ensuring maximum compatibility and fast load times for simple environments.
 
-<kbd>
-  <img src="assets/Screenshot 2026-01-02 133925.png" alt="Legacy Player Preview" width="600">
-</kbd>
+<a hreh="https://quad-media-player.netlify.app/">
+  <kbd>
+    <img src="assets/Screenshot 2026-01-02 133925.png" alt="Legacy Player Preview" width="600">
+  </kbd>
+</a>
 
 ---
 
-### 2. Modern Version (React + AI)
+### 2. <a href="https://quad-media-player.vercel.app/"> Modern Version (React + AI) </a>
 *Built with React 19, Vite, TypeScript, and TailwindCSS.*
 
 **Why?**
@@ -33,8 +35,10 @@ As the project grew, we migrated to a modern stack to support complex states, so
 - **Enhanced Algorithms**: States, context and effect management algorithms.
 - **FSD Architecture**: Feature-Sliced Design for a clean, maintainable, and scalable codebase.
 
-<kbd>
-  <img src="assets/Screenshot 2026-04-08 144024.png" alt="Modern AI-Powered Player Preview" width="600">
-</kbd>
+<a href="https://quad-media-player.vercel.app/">
+  <kbd>
+    <img src="assets/Screenshot 2026-04-08 144024.png" alt="Modern AI-Powered Player Preview" width="600">
+  </kbd>
+</a>
 
 ---
