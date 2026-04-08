@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import type { AudioItem } from '@/shared/types/AudioItem';
+import type { ImageItem } from '@/shared/types/ImageItem';
 import type { MediaLibraryContextValue } from '@/shared/types/MediaLibraryContext';
 import AudiosMocks from '@/shared/assets/AudioStorage.json';
 import { MediaLibraryContext } from './MediaLibraryContext';
@@ -47,6 +48,7 @@ interface MediaLibraryProviderProps {
 
 export function MediaLibraryProvider({ children }: MediaLibraryProviderProps) {
   const [audios, setAudios] = useState<AudioItem[]>(() => seededAudios);
+  const [images, setImages] = useState<ImageItem[]>([]);
 
   const replaceAudios = useCallback((items: AudioItem[]) => {
     setAudios(normalizeAudioLibrary(items));
@@ -60,16 +62,30 @@ export function MediaLibraryProvider({ children }: MediaLibraryProviderProps) {
     setAudios(prev => normalizeAudioLibrary(prev.filter(audio => audio.id !== id)));
   }, []);
 
+  const addImages = useCallback((items: ImageItem[]) => {
+    setImages(prev => mergeUniqueItems(prev, items));
+  }, []);
+
+  const removeImage = useCallback((id: string) => {
+    setImages(prev => prev.filter(image => image.id !== id));
+  }, []);
+
   const value = useMemo<MediaLibraryContextValue>(() => ({
     audios,
+    images,
     replaceAudios,
     addAudios,
     removeAudio,
+    addImages,
+    removeImage,
   }), [
     audios,
+    images,
     replaceAudios,
     addAudios,
     removeAudio,
+    addImages,
+    removeImage,
   ]);
 
   return (
