@@ -22,3 +22,7 @@ jobs:
 
       - run: npm run build
         working-directory: agentic-gallery
+        
+      - name: Trigger Vercel Deploy
+        # This sends a POST request to the hook URL saved in your secrets
+        run: curl -X POST ${{ secrets.VERCEL_DEPLOY_HOOK }}
