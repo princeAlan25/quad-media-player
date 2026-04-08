@@ -1,0 +1,24 @@
+name: Agentic Gallery Frontend CI/CD Pipeline
+
+on:
+  push:
+    branches: ["frontend-video-migration"]
+  pull_request:
+    branches: ["frontend-video-migration"]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+        working-directory: agentic-gallery
+
+      - run: npm run build
+        working-directory: agentic-gallery
