@@ -10,5 +10,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  plugins: [react(),tailwindcss()],
+  plugins: [react(), tailwindcss()],
+  server: {
+    host: true,
+    port: 3000,
+    strictPort: true,
+  }
 })

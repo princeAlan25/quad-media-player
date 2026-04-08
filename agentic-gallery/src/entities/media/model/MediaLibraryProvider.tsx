@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import type { AudioItem } from '@/shared/types/AudioItem';
 import type { ImageItem } from '@/shared/types/ImageItem';
+import type { VideoItem } from '@/shared/types/VideoItem';
 import type { MediaLibraryContextValue } from '@/shared/types/MediaLibraryContext';
 import AudiosMocks from '@/shared/assets/AudioStorage.json';
 import { MediaLibraryContext } from './MediaLibraryContext';
@@ -48,6 +49,7 @@ interface MediaLibraryProviderProps {
 
 export function MediaLibraryProvider({ children }: MediaLibraryProviderProps) {
   const [audios, setAudios] = useState<AudioItem[]>(() => seededAudios);
+  const [videos, setVideos] = useState<VideoItem[]>([]);
   const [images, setImages] = useState<ImageItem[]>([]);
 
   const replaceAudios = useCallback((items: AudioItem[]) => {
@@ -62,6 +64,14 @@ export function MediaLibraryProvider({ children }: MediaLibraryProviderProps) {
     setAudios(prev => normalizeAudioLibrary(prev.filter(audio => audio.id !== id)));
   }, []);
 
+  const addVideos = useCallback((items: VideoItem[]) => {
+    setVideos(prev => mergeUniqueItems(prev, items));
+  }, []);
+
+  const removeVideo = useCallback((id: string) => {
+    setVideos(prev => prev.filter(video => video.id !== id));
+  }, []);
+
   const addImages = useCallback((items: ImageItem[]) => {
     setImages(prev => mergeUniqueItems(prev, items));
   }, []);
@@ -72,18 +82,24 @@ export function MediaLibraryProvider({ children }: MediaLibraryProviderProps) {
 
   const value = useMemo<MediaLibraryContextValue>(() => ({
     audios,
+    videos,
     images,
     replaceAudios,
     addAudios,
     removeAudio,
+    addVideos,
+    removeVideo,
     addImages,
     removeImage,
   }), [
     audios,
+    videos,
     images,
     replaceAudios,
     addAudios,
     removeAudio,
+    addVideos,
+    removeVideo,
     addImages,
     removeImage,
   ]);
