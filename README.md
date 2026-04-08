@@ -4,7 +4,7 @@ Universal media hub designed for seamless audio/video playback, image viewing, a
 
 ---
 
-## 🚀 Evolution of Quad-MediaPlayer
+## Evolution of Quad-MediaPlayer
 
 This repository utilizes a multi-branch strategy to host and optimize the player for different platforms and capabilities.
 
@@ -30,12 +30,11 @@ As the project grew, we migrated to a modern stack to support complex states, so
 - **React 19 & Vite**: Ultra-fast development and optimized production builds.
 - **TypeScript**: Strict typing for robust, error-free media processing logic.
 - **TailwindCSS 4**: Atomic CSS for a fluid, premium design system.
-- **Enhanced Algorithms**: Integration of **TensorFlow.js** and **MediaPipe** for AI-powered interactions (e.g., hand tracking for touchless control).
+- **Enhanced Algorithms**: States, context and effect management algorithms.
 - **FSD Architecture**: Feature-Sliced Design for a clean, maintainable, and scalable codebase.
 
-<!-- [INSERT_MODERN_SCREENSHOT_HERE] -->
 <kbd>
-  <img src="ADD_IMAGE_PATH_HERE" alt="Modern AI-Powered Player Preview" width="600">
+  <img src="assets/Screenshot 2026-04-08 144024.png" alt="Modern AI-Powered Player Preview" width="600">
 </kbd>
 
 ---
