@@ -23,7 +23,7 @@ export const ImageFileUpload = memo(function ImageFileUpload({ onFilesSelected }
   };
 
   return (
-    <div className="relative">
+    <div className="relative max-sm:w-full max-sm:flex justify-center">
       <input
         ref={inputRef}
         type="file"
@@ -35,7 +35,7 @@ export const ImageFileUpload = memo(function ImageFileUpload({ onFilesSelected }
       />
       <button
         onClick={handleClick}
-        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-pink-500/30 active:scale-95"
+        className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-pink-500/30 active:scale-95"
       >
         <FaCloudUploadAlt className="text-lg" />
         <span className="text-sm font-medium">Upload Images</span>
