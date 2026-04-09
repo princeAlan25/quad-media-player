@@ -280,10 +280,10 @@ export const AgentPage = () => {
       },
       opened: openedDocument
         ? {
-            id: openedDocument.id,
-            title: openedDocument.title,
-            type: openedDocument.type,
-          }
+          id: openedDocument.id,
+          title: openedDocument.title,
+          type: openedDocument.type,
+        }
         : null,
     };
   }, [addAudios, addImages, addVideos, audios, images, navigate, requestMediaFocus, videos]);
@@ -432,10 +432,10 @@ export const AgentPage = () => {
           : requestedType === 'image'
             ? images.map(item => ({ id: item.id, title: item.name }))
             : [
-                ...audios.slice(0, 3).map(item => ({ id: item.id, title: item.title, type: 'audio' })),
-                ...videos.slice(0, 3).map(item => ({ id: item.id, title: item.name, type: 'video' })),
-                ...images.slice(0, 3).map(item => ({ id: item.id, title: item.name, type: 'image' })),
-              ];
+              ...audios.slice(0, 3).map(item => ({ id: item.id, title: item.title, type: 'audio' })),
+              ...videos.slice(0, 3).map(item => ({ id: item.id, title: item.name, type: 'video' })),
+              ...images.slice(0, 3).map(item => ({ id: item.id, title: item.name, type: 'image' })),
+            ];
 
       return {
         counts: localCounts,
@@ -525,7 +525,7 @@ export const AgentPage = () => {
     try {
       await ensurePuterSignIn();
 
-      for (let step = 0; step < 5; step += 1) {
+      for (let step = 0; step < 10; step += 1) {
         const response = await window.puter.ai.chat(workingConversation, {
           model: getPuterModel(),
           tools: toolDefinitions,
@@ -799,13 +799,12 @@ export const AgentPage = () => {
           {chatLines.map(line => (
             <div
               key={line.id}
-              className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 ${
-                line.role === 'user'
+              className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 ${line.role === 'user'
                   ? 'ml-auto bg-cyan-400/20 border border-cyan-300/20 text-white'
                   : line.role === 'tool'
                     ? 'bg-white/6 border border-white/8 text-white/70'
                     : 'bg-white/10 border border-white/10 text-white'
-              } wrap-break-word whitespace-pre-wrap`}
+                } wrap-break-word whitespace-pre-wrap`}
             >
               {line.content}
             </div>
