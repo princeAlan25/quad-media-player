@@ -19,7 +19,7 @@ const SUPPORTED_VIDEO_MIME_TYPES = new Set([
   'video/webm',
 ]);
 
-const DEFAULT_ANALYSIS_MODEL = 'openai/gpt-4.1-mini';
+const DEFAULT_ANALYSIS_MODEL = 'google/gemma-4-26b-a4b-it:free';
 const DEFAULT_MAX_ITEMS_PER_SCAN = 24;
 const DEFAULT_MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const DEFAULT_MAX_VIDEO_BYTES = 20 * 1024 * 1024;
@@ -396,18 +396,18 @@ async function analyzeDocument(
   const client = await getOpenRouterClient();
   const mediaItem: OpenRouterMessageImageItem | OpenRouterMessageVideoItem = document.type === 'image'
     ? {
-        type: 'image_url',
-        imageUrl: {
-          url: dataUrl,
-          detail: 'auto',
-        },
-      }
+      type: 'image_url',
+      imageUrl: {
+        url: dataUrl,
+        detail: 'auto',
+      },
+    }
     : {
-        type: 'input_video',
-        videoUrl: {
-          url: dataUrl,
-        },
-      };
+      type: 'input_video',
+      videoUrl: {
+        url: dataUrl,
+      },
+    };
 
   const response = await client.chat.send({
     model: config.model,
