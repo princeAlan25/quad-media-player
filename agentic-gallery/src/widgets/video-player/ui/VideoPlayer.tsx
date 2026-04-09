@@ -216,9 +216,9 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
 
   if (!currentVideo) {
     return (
-      <div className="w-full h-full max-w-full max-h-full overflow-scroll flex flex-col items-center justify-center bg-black/40 rounded-4xl">
+      <div className="w-full h-full max-w-full max-h-full overflow-scroll flex flex-col items-center justify-center bg-black/40 rounded-4xl max-sm:rounded-md max-sm:*:scale-90">
         <div className="text-center space-y-4">
-          <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+          <div className="w-24 h-24 mx-auto rounded-full bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
             <span className="text-xl font-semibold tracking-wide text-white">Upload Videos</span>
           </div>
           <h3 className="text-white text-xl font-semibold">No Video Selected</h3>
@@ -234,16 +234,17 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-full bg-black rounded-4xl overflow-hidden group"
+      className="relative w-full h-full bg-black rounded-4xl overflow-hidden group max-sm:overflow-y-scroll max-sm:rounded-md max-sm:p-0 max-sm:max-h-[96vh] max-sm:overflow-hidden"
       onMouseMove={showControlsTemporarily}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
       <div
         key={currentVideo?.id || 'empty'}
-        className="h-full w-full transition-opacity duration-300"
+        className="h-full w-full transition-opacity duration-300 max-sm:sticky max-sm:top-0 max-sm:z-1 max-sm:mb-2"
       >
         <video
           ref={videoRef}
+          controls
           src={currentVideo?.url}
           className="w-full h-full object-contain"
           onClick={handlePlayPause}
@@ -252,7 +253,7 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
       </div>
 
       <div 
-        className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 ${
+        className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 max-sm:w-full max-sm:h-30 max-sm:hidden ${
           showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
@@ -272,10 +273,10 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
         />
       </div>
 
-      <div className={`absolute top-4 right-4 transition-opacity duration-300 ${
+      <div className={`absolute top-4 right-4 transition-opacity duration-300 max-sm:sticky max-sm:top-2 max-sm:float-right max-sm:z-2 ${
         showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 max-sm:rounded-md">
           {currentVideo && (
             <button
               onClick={handleRemoveCurrentVideo}
@@ -291,14 +292,14 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
 
       {/* Thumbnail rail on the right */}
       {videos.length > 0 && (
-        <div className="absolute top-4 bottom-4 right-2 w-28 overflow-y-auto space-y-2 pr-1">
+        <div className="absolute top-4 bottom-4 right-2 w-28 overflow-y-auto space-y-2 pr-1 max-sm:relative max-sm:shadow-2xl max-sm:w-full max-sm:right-0 max-sm:p-2 max-sm:overflow-y-scroll">
           {videos.map((v, idx) => (
             <button
               key={v.id}
               onClick={() => handleSelectVideo(idx)}
-              className={`relative w-full flex flex-col items-center gap-1 rounded-xl overflow-hidden border transition-all ${
+              className={`relative w-full flex flex-col items-center gap-1 rounded-xl overflow-hidden border transition-all max-sm:opacity-60 ${
                 idx === currentIndex
-                  ? 'border-emerald-400 bg-white/10'
+                  ? 'border-emerald-400 bg-white/10 max-sm:opacity-80 max-sm:shadow-md max-sm:shadow-green-100'
                   : 'border-white/15 bg-white/5 hover:bg-white/10'
               }`}
             >
@@ -318,7 +319,7 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
                 className="w-full h-20 object-cover pointer-events-none"
                 muted
               />
-              <span className="px-2 pb-2 text-[11px] text-white/80 truncate w-full">{v.name}</span>
+              <span className={`px-2 pb-2 text-[11px] text-white/80 truncate w-full max-sm:text-left ${idx === currentIndex ? 'max-sm:bg-emerald-500/80' : ''}`}>{v.name}</span>
             </button>
           ))}
         </div>
@@ -326,7 +327,7 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
 
       {/* Mini playlist chips */}
       {videos.length > 1 && (
-        <div className="absolute bottom-24 left-0 right-0 flex flex-wrap justify-center gap-2 px-4">
+        <div className="absolute bottom-24 left-0 right-0 flex flex-wrap justify-center gap-2 px-4 max-sm:hidden">
           {videos.map((v, idx) => (
             <button
               key={v.id}
