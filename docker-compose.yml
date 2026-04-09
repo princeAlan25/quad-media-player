@@ -10,8 +10,10 @@ services:
     environment:
       - PORT=7000
       - FRONTEND_ORIGIN=http://localhost:3000
+      - HOST_USER_PROFILE=${USERPROFILE:-${HOME}}
     volumes:
       - backend_data:/app/data
+      - ${USERPROFILE:-${HOME}}:/host-user
 
   frontend:
     build:
