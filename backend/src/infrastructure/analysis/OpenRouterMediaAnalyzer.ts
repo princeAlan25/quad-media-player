@@ -2,6 +2,7 @@ import { promises as fs } from 'node:fs';
 import type { MediaAnalysisStats, MediaDocument } from '../../domain/media/types';
 import { DATA_DIRECTORY, MEDIA_ANALYSIS_CACHE_FILE } from '../config/paths';
 import type { MediaAnalyzer } from './MediaAnalyzer';
+import { mapHostPathToContainer } from '../config/pathMapping';
 
 const SUPPORTED_IMAGE_MIME_TYPES = new Set([
   'image/avif',
@@ -363,7 +364,8 @@ async function readDataUrl(document: MediaDocument, config: MediaAnalysisConfig)
     }
   }
 
-  const fileBuffer = await fs.readFile(document.filePath);
+  const resolvedPath = mapHostPathToContainer(document.filePath);
+  const fileBuffer = await fs.readFile(resolvedPath);
   return {
     dataUrl: `data:${document.mimeType};base64,${fileBuffer.toString('base64')}`,
   };

@@ -5,6 +5,7 @@ import path from 'node:path';
 import type { MediaSystemScanner, SystemScanResult } from '../../application/media/contracts';
 import type { MediaAnalysisStats, MediaDocument, MediaSyncSource, MediaType } from '../../domain/media/types';
 import type { MediaAnalyzer } from '../analysis/MediaAnalyzer';
+import { mapContainerPathToHost } from '../config/pathMapping';
 
 const COMMON_ROOT_NAMES = ['Desktop', 'Documents', 'Downloads', 'Music', 'Pictures', 'Videos'] as const;
 const SKIPPED_DIRECTORY_NAMES = new Set([
@@ -132,7 +133,7 @@ async function pathExists(targetPath: string): Promise<boolean> {
 }
 
 async function discoverRoots(): Promise<Array<{ source: MediaSyncSource; rootPath: string }>> {
-  const homeDirectory = os.homedir();
+  const homeDirectory = process.env.HOST_USER_PROFILE ? '/host-user' : os.homedir();
   const discoveredRoots = new Map<string, { source: MediaSyncSource; rootPath: string }>();
 
   const registerRoot = async (label: string, rootPath: string) => {
@@ -234,7 +235,7 @@ async function walkRoot(
           modifiedAt: Math.round(stats.mtimeMs),
           keywords: toKeywords(entry.name, relativePath, source.label),
           tags: ['system-scan', mediaType],
-          filePath: entryPath,
+          filePath: mapContainerPathToHost(entryPath),
         });
       } catch {
         skippedEntries += 1;

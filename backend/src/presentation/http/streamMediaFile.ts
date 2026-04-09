@@ -1,6 +1,7 @@
 import { createReadStream, promises as fs } from 'node:fs';
 import type { Request, Response } from 'express';
 import type { MediaDocument } from '../../domain/media/types';
+import { mapHostPathToContainer } from '../../infrastructure/config/pathMapping';
 
 export async function streamMediaFile(req: Request, res: Response, document: MediaDocument): Promise<void> {
   if (!document.filePath) {
@@ -8,7 +9,8 @@ export async function streamMediaFile(req: Request, res: Response, document: Med
     return;
   }
 
-  const stats = await fs.stat(document.filePath);
+  const resolvedPath = mapHostPathToContainer(document.filePath);
+  const stats = await fs.stat(resolvedPath);
   const rangeHeader = req.headers.range;
   const baseHeaders = {
     'Accept-Ranges': 'bytes',
@@ -22,7 +24,7 @@ export async function streamMediaFile(req: Request, res: Response, document: Med
       ...baseHeaders,
       'Content-Length': stats.size,
     });
-    createReadStream(document.filePath).pipe(res);
+    createReadStream(resolvedPath).pipe(res);
     return;
   }
 
@@ -47,5 +49,5 @@ export async function streamMediaFile(req: Request, res: Response, document: Med
     'Content-Length': end - start + 1,
     'Content-Range': `bytes ${start}-${end}/${stats.size}`,
   });
-  createReadStream(document.filePath, { start, end }).pipe(res);
+  createReadStream(resolvedPath, { start, end }).pipe(res);
 }
