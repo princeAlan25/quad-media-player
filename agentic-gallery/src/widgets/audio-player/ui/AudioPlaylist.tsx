@@ -38,7 +38,7 @@ export const AudioPlaylist = memo(function AudioPlaylist({
             key={audio.id}
             onClick={() => handleSelect(audio)}
             className={`
-              group flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200
+              max-sm:scale-90 max-sm:h-10 max-sm:*:scale-90 group flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200
               hover:bg-white/10 active:scale-[0.98]
               ${isCurrent ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-l-4 border-green-400' : ''}
             `}
