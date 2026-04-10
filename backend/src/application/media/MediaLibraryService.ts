@@ -179,6 +179,44 @@ export class MediaLibraryService {
     };
   }
 
+  async searchYouTube(query: string, limit: number) {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey || apiKey === 'your_youtube_api_key_here') {
+      throw new Error(`YOUTUBE_API_KEY is not configured in the backend environment.`);
+    }
+
+    const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&maxResults=${limit}&type=video&key=${apiKey}`);
+    
+    if (!response.ok) {
+      throw new Error(`YouTube API failed with status ${response.status}`);
+    }
+    
+    const data = (await response.json()) as { items?: any[] };
+    const items = data.items || [];
+    
+    const documents: MediaDocument[] = items.map((item: any) => ({
+      id: `youtube-${item.id.videoId}`,
+      type: 'video',
+      sourceId: 'youtube',
+      sourceLabel: 'YouTube',
+      sourceMode: 'system',
+      fileName: `${item.snippet.title}.mp4`,
+      title: item.snippet.title,
+      artist: item.snippet.channelTitle,
+      mimeType: 'video/mp4',
+      relativePath: item.id.videoId, // Direct YouTube ID
+      size: 0,
+      modifiedAt: Date.now(),
+      keywords: [item.snippet.channelTitle, 'youtube', 'video'],
+      tags: ['youtube', 'video']
+    }));
+
+    return {
+      query,
+      documents
+    };
+  }
+
   private async replaceSourceDocumentsBatch(sourceEntries: Array<{ source: MediaSyncSource; documents: MediaDocument[] }>) {
     const current = await this.indexRepository.readIndex();
     const nextIndex = replaceDocumentsForSources(current, sourceEntries);

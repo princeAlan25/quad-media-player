@@ -100,3 +100,10 @@ export async function searchJamendoMusic(query: string, limit = 10) {
     body: JSON.stringify({ query, limit }),
   });
 }
+
+export async function searchYouTubeVideo(query: string, limit = 10) {
+  return requestJson<{ query: string; documents: BackendMediaDocument[] }>('/api/media/youtube/search', {
+    method: 'POST',
+    body: JSON.stringify({ query, limit }),
+  });
+}
