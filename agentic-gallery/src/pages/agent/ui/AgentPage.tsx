@@ -4,7 +4,7 @@ import { FaArrowRotateRight, FaFolderOpen, FaLink, FaTrash } from 'react-icons/f
 import type { AudioItem } from '@/shared/types/AudioItem';
 import type { ImageItem } from '@/shared/types/ImageItem';
 import type { VideoItem } from '@/shared/types/VideoItem';
-import { fetchBackendHealth, fetchMediaDocument, fetchMediaDocuments, fetchMediaLibrary, fetchRagContext, getBackendMediaUrl, scanSystemMediaLibrary, searchMediaLibrary } from '@/shared/api/backendApi';
+import { fetchBackendHealth, fetchMediaDocument, fetchMediaDocuments, fetchMediaLibrary, fetchRagContext, getBackendMediaUrl, scanSystemMediaLibrary, searchMediaLibrary, searchJamendoMusic } from '@/shared/api/backendApi';
 import { ensurePuterSignIn, getPuterModel, readPuterSessionSnapshot, refreshPuterSessionSnapshot, retryPuterSignIn, subscribeToPuterSessionUpdates } from '@/shared/lib/puterAuth';
 import { useMediaLibrary } from '@/entities/media';
 import type { BackendMediaDocument, BackendMediaMatch, BackendMediaStats, MediaKind } from '@/shared/types/LibraryMedia';
@@ -97,7 +97,7 @@ export const AgentPage = () => {
   const [conversation, setConversation] = useState<PuterChatMessage[]>([
     {
       role: 'system',
-      content: 'You are a media RAG assistant for a local media player. Search across the indexed PC media library, which may include AI-generated visual summaries, OCR text, and video scene tags for better retrieval. Use search_media to inspect results, use collect_media when the user wants many or all matching files loaded into the app, use open_media to focus one exact item, and never invent IDs or claim files exist unless a tool returns them. Be concise and practical.',
+      content: 'You are a media RAG assistant for a local media player. Search across the indexed PC media library, which may include AI-generated visual summaries, OCR text, and video scene tags for better retrieval. Use search_media to inspect results, use collect_media when the user wants many or all matching files loaded into the app, use open_media to focus one exact item, and never invent IDs or claim files exist unless a tool returns them. If the user asks for new music, songs, or artists, you must use search_jamendo_music to find and stream real music directly from the cloud. Be concise and practical.',
     },
   ]);
   const [isRunning, setIsRunning] = useState(false);
@@ -196,7 +196,7 @@ export const AgentPage = () => {
     const imageItems: ImageItem[] = [];
 
     for (const document of documentsToAdd) {
-      const backendUrl = getBackendMediaUrl(document.id);
+      const backendUrl = document.sourceId === 'jamendo' ? document.relativePath : getBackendMediaUrl(document.id);
 
       if (document.type === 'audio') {
         audioItems.push({
@@ -389,10 +389,36 @@ export const AgentPage = () => {
         },
       },
     },
+    {
+      type: 'function',
+      function: {
+        name: 'search_jamendo_music',
+        description: 'Search Jamendo for new music/songs/artists to stream from the cloud. Returns a list of playable audio tracks.',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'The song title, artist, or genre to search for.' },
+            limit: { type: 'number', description: 'Maximum number of tracks to return. Default 10.' },
+          },
+          required: ['query'],
+        },
+      },
+    },
   ]), []);
 
   const executeToolCall = useCallback(async (toolCall: PuterToolCall) => {
     const args = JSON.parse(toolCall.function.arguments || '{}') as Record<string, unknown>;
+
+    if (toolCall.function.name === 'search_jamendo_music') {
+      const result = await searchJamendoMusic(
+        String(args.query ?? ''),
+        typeof args.limit === 'number' ? args.limit : 10,
+      );
+      return {
+        query: result.query,
+        ...addBackendDocumentsToLibrary(result.documents, { openFirst: true }),
+      };
+    }
 
     if (toolCall.function.name === 'search_media') {
       const result = await fetchRagContext(
@@ -564,6 +590,8 @@ export const AgentPage = () => {
 
           if (toolCall.function.name === 'search_media') {
             summary = `Ran ${toolCall.function.name} and found ${((result as { matches?: BackendMediaMatch[] }).matches ?? []).length} matches.`;
+          } else if (toolCall.function.name === 'search_jamendo_music') {
+            summary = `Searched Jamendo music and loaded ${((result as any).added ?? 0)} new tracks into the app.`;
           } else if (toolCall.function.name === 'collect_media') {
             const collectResult = result as {
               matched?: number;

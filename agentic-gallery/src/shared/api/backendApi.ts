@@ -93,3 +93,10 @@ export async function fetchRagContext(query: string, types?: MediaKind[], limit 
 export async function fetchBackendHealth() {
   return requestJson<{ ok: boolean; stats: BackendMediaStats }>('/api/health');
 }
+
+export async function searchJamendoMusic(query: string, limit = 10) {
+  return requestJson<{ query: string; documents: BackendMediaDocument[] }>('/api/media/jamendo/search', {
+    method: 'POST',
+    body: JSON.stringify({ query, limit }),
+  });
+}
