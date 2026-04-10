@@ -242,36 +242,47 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
         key={currentVideo?.id || 'empty'}
         className="h-full w-full transition-opacity duration-300 max-sm:sticky max-sm:top-0 max-sm:z-1 max-sm:mb-2"
       >
-        <video
-          ref={videoRef}
-          controls
-          src={currentVideo?.url}
-          className="w-full h-full object-contain"
-          onClick={handlePlayPause}
-          playsInline
-        />
+        {currentVideo?.sourceId === 'youtube' ? (
+          <iframe
+            className="w-full h-full border-0"
+            src={`https://www.youtube-nocookie.com/embed/${currentVideo.relativePath}?autoplay=1&controls=1&rel=0`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            controls
+            src={currentVideo?.url}
+            className="w-full h-full object-contain"
+            onClick={handlePlayPause}
+            playsInline
+          />
+        )}
       </div>
 
-      <div 
-        className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 max-sm:w-full max-sm:h-30 max-sm:hidden ${
-          showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        <VideoPlayerControls
-          isPlaying={isPlaying}
-          isMuted={isMuted}
-          isFullscreen={isFullscreen}
-          currentTime={currentTime}
-          duration={duration}
-          volume={volume}
-          onPlayPause={handlePlayPause}
-          onMuteToggle={handleMuteToggle}
-          onFullscreenToggle={toggleFullscreen}
-          onSeek={handleSeek}
-          onVolumeChange={handleVolumeChange}
-          onSkip={handleSkip}
-        />
-      </div>
+      {currentVideo?.sourceId !== 'youtube' && (
+        <div 
+          className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 max-sm:w-full max-sm:h-30 max-sm:hidden ${
+            showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          <VideoPlayerControls
+            isPlaying={isPlaying}
+            isMuted={isMuted}
+            isFullscreen={isFullscreen}
+            currentTime={currentTime}
+            duration={duration}
+            volume={volume}
+            onPlayPause={handlePlayPause}
+            onMuteToggle={handleMuteToggle}
+            onFullscreenToggle={toggleFullscreen}
+            onSeek={handleSeek}
+            onVolumeChange={handleVolumeChange}
+            onSkip={handleSkip}
+          />
+        </div>
+      )}
 
       <div className={`absolute top-4 right-4 transition-opacity duration-300 max-sm:sticky max-sm:top-2 max-sm:float-right max-sm:z-2 ${
         showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
