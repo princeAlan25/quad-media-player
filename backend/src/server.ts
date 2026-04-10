@@ -23,7 +23,7 @@ const mediaLibraryService = new MediaLibraryService({
 app.use(express.json({ limit: '20mb' }));
 app.use(
   cors({
-    origin: frontendOrigin,
+    origin: (origin, callback) => callback(null, true),
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Range'],
     exposedHeaders: ['Accept-Ranges', 'Content-Length', 'Content-Range', 'Content-Type'],
@@ -39,5 +39,5 @@ app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 app.listen(port, () => {
-  console.log(`Media RAG backend running on http://localhost:${port}`);
+  console.log(`Media RAG backend running on port:${port} now`);
 });

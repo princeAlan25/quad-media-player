@@ -136,5 +136,15 @@ export function createMediaRouter({ mediaLibraryService }: CreateMediaRouterDepe
     }
   });
 
+  router.post('/api/media/jamendo/search', async (req: Request<unknown, unknown, MediaSearchRequest>, res, next) => {
+    try {
+      const query = req.body?.query || '';
+      const limit = req.body?.limit || 10;
+      res.json(await mediaLibraryService.searchJamendo(query, limit));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }
