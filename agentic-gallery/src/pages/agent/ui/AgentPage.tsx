@@ -9,6 +9,16 @@ import { ensurePuterSignIn, getPuterModel, readPuterSessionSnapshot, refreshPute
 import { useMediaLibrary } from '@/entities/media';
 import type { BackendMediaDocument, BackendMediaMatch, BackendMediaStats, MediaKind } from '@/shared/types/LibraryMedia';
 import type { PuterChatMessage, PuterChatResponse, PuterToolCall, PuterToolDefinition } from '@/shared/types/puter';
+import { MdMenuBook, MdMoreVert } from 'react-icons/md';
+import { RiMenu2Fill, RiMenuFill, RiMenuLine } from 'react-icons/ri';
+import { FcCloseUpMode } from 'react-icons/fc';
+import { BiCloset, BiSolidSend } from 'react-icons/bi';
+import { CgCloseR } from 'react-icons/cg';
+import { FiSend } from 'react-icons/fi';
+import { BsFillSendFill } from 'react-icons/bs';
+import { SiProgress } from 'react-icons/si';
+import { FaTruckLoading } from 'react-icons/fa';
+import { VscLoading } from 'react-icons/vsc';
 
 type ChatRole = 'assistant' | 'user' | 'tool';
 
@@ -92,8 +102,9 @@ export const AgentPage = () => {
   ]);
   const [isRunning, setIsRunning] = useState(false);
   const [isSystemScanning, setIsSystemScanning] = useState(false);
-  const [systemScanMessage, setSystemScanMessage] = useState('Scan readable folders on this PC directly from the backend so the agent can search and open them without browser folder imports. If backend AI analysis is configured, images and smaller videos are also classified for richer search.');
+  const [systemScanMessage, setSystemScanMessage] = useState('Scan folders on this Device directly so that the agent can search and open them without browser folder imports and also AI analysis classify audios, images and smaller videos for richer search.');
   const [puterSession, setPuterSession] = useState(() => readPuterSessionSnapshot());
+  const [showSideBar, setShowSideBar] = useState<boolean>(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   const localCounts = useMemo(() => ({
@@ -600,14 +611,21 @@ export const AgentPage = () => {
     }
   }, [conversation, executeToolCall, isRunning, query, toolDefinitions]);
 
+  const sidebarTogglingHandler = useCallback(() => {
+      setShowSideBar(prev => !prev);
+    }, [showSideBar])
+
   return (
-    <div className="w-full min-h-[calc(100vh-6rem)] grid grid-cols-[minmax(320px,380px)_1fr] gap-6">
-      <section className={`${glassPanelClass} p-5 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-scroll`}>
+    <div className="w-full min-h-[calc(100vh-6rem)] grid grid-cols-[minmax(320px,380px)_1fr] gap-6 max-sm:max-w-full max-sm:flex justify-center items-center max-sm:rounded-md max-sm:h-[96vh] max-sm:overflow-hidden max-sm:*:border-0">
+      <button type="button" className='hidden absolute invert-75 bg-black/20 top-0 left-0 my-2 mx-2 p-2 overflow-hidden rounded-md max-sm:block' onClick={sidebarTogglingHandler}>
+        {!showSideBar ? <RiMenuFill className='invert-100' /> : <CgCloseR className='invert-100' />}
+      </button>
+      <section className={`${glassPanelClass} p-5 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-scroll max-sm:rounded-md ${showSideBar ? "max-sm:block" : "max-sm:hidden"}`}>
         <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">Agentic RAG</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">Your Agent Space</p>
           <h1 className="text-3xl font-semibold text-white">Media Control Room</h1>
           <p className="text-sm text-white/60">
-            Let the backend scan your PC folders directly or connect browser folders manually, then use Puter tool-calling to retrieve and open media.
+            Let the agent help or yourself scan your device media you want to play directly here without any manual search effort.
           </p>
         </div>
 
@@ -626,7 +644,7 @@ export const AgentPage = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/8 p-4 space-y-3">
+        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/8 p-4 space-y-3 hidden">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-white">Puter Agent</p>
@@ -653,10 +671,10 @@ export const AgentPage = () => {
         </div>
 
         <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/8 p-4 space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between max-sm:flex-col max-sm:space-y-2 max-sm:items-start">
             <div>
               <p className="text-sm font-medium text-white">Computer Scan</p>
-              <p className="text-xs text-white/55">The backend scans readable folders under your Windows user profile directly, including subfolders, and can classify images or smaller videos for better search when configured.</p>
+              <p className="text-xs text-white/55">folders under your Windows/Linux/Mac,Mobile user profile directly, including subfolders, and can classify images, audios or smaller videos for better search when configured.</p>
             </div>
             <button
               onClick={() => void runBackendMediaScan()}
@@ -664,7 +682,7 @@ export const AgentPage = () => {
               className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-60 transition-colors"
             >
               <FaFolderOpen className="text-sm" />
-              <span className="text-sm">{isSystemScanning ? 'Scanning PC...' : 'Scan PC'}</span>
+              <span className="text-sm">{isSystemScanning ? 'Scanning Device...' : 'Scan Device'}</span>
             </button>
           </div>
           <p className="text-xs text-white/55">{systemScanMessage}</p>
@@ -731,7 +749,7 @@ export const AgentPage = () => {
           </div>
 
           <p className="text-xs text-white/50">
-            This section is optional. Use it only for browser-managed folder handles. Direct PC access is handled by the Computer Scan above.
+            This section is optional. Use it only for browser-managed folder handles. Direct Device access is handled by the Device Scan above.
           </p>
 
           {!supportsDirectorySync && (
@@ -777,33 +795,33 @@ export const AgentPage = () => {
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm font-medium text-white">Backend Index</p>
+          <p className="text-sm font-medium text-white">Device Media Sync</p>
           <p className="text-xs text-white/55 mt-1">
             {backendStats
               ? `${backendStats.total} indexed items across ${backendStats.sources} sources`
-              : 'Backend is not reachable yet.'}
+              : 'no media found yet.'}
           </p>
         </div>
       </section>
 
-      <section className={`${glassPanelClass} p-5 flex flex-col h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden`}>
-        <div className="mb-4">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">Conversation</p>
-          <h2 className="text-2xl font-semibold text-white mt-2">Ask the agent</h2>
+      <section ref={chatScrollRef} className={`${glassPanelClass} p-5 flex flex-col h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden max-sm:max-h-[84vh] max-sm:p-0 max-sm:-mt-4 max-sm:rounded-md max-sm:overflow-y-scroll ${showSideBar ? "max-sm:hidden" : "max-sm:block"}`}>
+        <div className="mb-4 max-sm:m-2">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/40 max-sm:hidden">Conversation</p>
+          <h2 className="text-2xl font-semibold text-white mt-2 max-sm:mt-0 max-sm:text-sm">Ask the agent</h2>
         </div>
 
         <div
           ref={chatScrollRef}
-          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden space-y-3 pr-2"
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden space-y-3 pr-2 max-sm:pr-0 max-sm:min-h-[82%]"
         >
           {chatLines.map(line => (
             <div
               key={line.id}
-              className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 ${line.role === 'user'
-                  ? 'ml-auto bg-cyan-400/20 border border-cyan-300/20 text-white'
+              className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 max-sm:text-xs max-sm:leading-4 max-sm:rounded-md max-sm:p-2 max-sm:border-none ${line.role === 'user'
+                  ? 'ml-auto bg-cyan-400/20 border border-cyan-300/20 text-white max-sm:min-w-[84%]'
                   : line.role === 'tool'
-                    ? 'bg-white/6 border border-white/8 text-white/70'
-                    : 'bg-white/10 border border-white/10 text-white'
+                    ? 'bg-white/6 border border-white/8 text-white/70 max-sm:max-w-full'
+                    : 'bg-white/10 border border-white/10 text-white max-sm:max-w-full'
                 } wrap-break-word whitespace-pre-wrap`}
             >
               {line.content}
@@ -816,20 +834,20 @@ export const AgentPage = () => {
             event.preventDefault();
             void sendPromptToAgent();
           }}
-          className="mt-4 flex shrink-0 gap-3"
+          className="mt-4 flex shrink-0 gap-3 max-sm:sticky bottom-0 max-sm:min-w-ful max-sm:min-h-[10%] max-sm:bottom-0 max-sm:gap-x-0"
         >
           <textarea
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Find and collect my gospel songs, open the wedding album, or refresh the library."
-            className="flex-1 resize-none min-h-24 rounded-2xl bg-black/25 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/50"
+            className="flex-1 resize-none min-h-24 rounded-2xl bg-black/25 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/50 max-sm:rounded-md max-sm:min-h-full max-sm:text-xs max-sm:min-w-[80%] max-sm:bg-black invert-75"
           />
           <button
             type="submit"
             disabled={isRunning || !query.trim()}
-            className="px-5 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 text-slate-950 font-semibold disabled:opacity-50"
+            className="px-5 rounded-2xl bg-linear-to-br from-cyan-400 to-blue-500 text-slate-950 font-semibold disabled:opacity-50 max-sm:scale-80 max-sm:rounded-xlg"
           >
-            {isRunning ? 'Working...' : 'Ask'}
+            {isRunning ? <VscLoading className='animate-spin' /> : <BiSolidSend className='m-auto' />}
           </button>
         </form>
       </section>
