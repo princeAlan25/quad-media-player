@@ -232,93 +232,97 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
   }
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      className="relative w-full h-full bg-black rounded-4xl overflow-hidden group max-sm:overflow-y-scroll max-sm:rounded-md max-sm:p-0 max-sm:max-h-[96vh] max-sm:overflow-hidden max-lg:flex max-lg:flex-col max-lg:overflow-y-auto max-lg:rounded-xl max-lg:p-0 max-lg:h-auto max-lg:min-h-full max-xl:flex max-xl:flex-col max-xl:overflow-y-auto max-xl:rounded-xl max-xl:p-0 max-xl:h-auto max-xl:min-h-full"
+      className="relative flex flex-row w-full h-full bg-black rounded-md overflow-hidden group max-sm:overflow-y-scroll max-sm:rounded-md max-sm:p-0 max-sm:max-h-[96vh] max-sm:overflow-hidden max-lg:flex max-lg:flex-col max-lg:overflow-y-auto max-lg:rounded-xl max-lg:p-0 max-lg:h-auto max-lg:min-h-full max-xl:flex max-xl:flex-col max-xl:overflow-y-auto max-xl:rounded-xl max-xl:p-0 max-xl:h-auto max-xl:min-h-full"
       onMouseMove={showControlsTemporarily}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
-      <div
-        key={currentVideo?.id || 'empty'}
-        className="h-full w-full transition-opacity duration-300 max-sm:sticky max-sm:top-0 max-sm:z-1 max-sm:mb-2 max-lg:sticky max-lg:top-0 max-lg:h-auto max-lg:aspect-video max-lg:shrink-0 max-lg:z-20 max-lg:bg-black max-lg:mb-2 max-xl:sticky max-xl:top-0 max-xl:h-auto max-xl:aspect-video max-xl:shrink-0 max-xl:z-20 max-xl:bg-black max-xl:mb-2"
-      >
-        {currentVideo?.sourceId === 'youtube' ? (
-          <iframe
-            className="w-full h-full border-0"
-            src={`https://www.youtube-nocookie.com/embed/${currentVideo.relativePath}?autoplay=1&controls=1&rel=0`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <video
-            ref={videoRef}
-            controls
-            src={currentVideo?.url}
-            className="w-full h-full object-contain"
-            onClick={handlePlayPause}
-            playsInline
-          />
-        )}
-      </div>
+      {/* ── Left column: scrollable, video sticky at top ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-scroll max-xl:flex max-xl:flex-col max-xl:overflow-y-auto max-lg:contents max-sm:contents">
 
-      {/* Now-playing title — iPad only */}
-      <div className="hidden max-lg:flex max-xl:flex max-sm:hidden items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-sm shrink-0">
-        <span className="text-white/50 text-xs font-medium uppercase tracking-wider shrink-0">Now Playing</span>
-        <span className="text-white text-sm font-semibold truncate">{currentVideo?.name ?? ''}</span>
-      </div>
-
-      {currentVideo?.sourceId !== 'youtube' && (
-        <div 
-          className={`absolute bottom-0 left-0 right-0 transition-opacity duration-300 max-sm:w-full max-sm:h-30 max-sm:hidden max-lg:hidden max-xl:hidden ${
-            showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
+        {/* Video — sticky at top on desktop */}
+        <div
+          key={currentVideo?.id || 'empty'}
+          className="sticky top-0 z-10 shrink-0 aspect-video bg-black rounded-md relative transition-opacity duration-300 max-sm:sticky max-sm:top-0 max-sm:z-1 max-sm:mb-2 max-lg:sticky max-lg:top-0 max-lg:h-auto max-lg:aspect-video max-lg:shrink-0 max-lg:z-20 max-lg:bg-black max-lg:mb-2 max-xl:sticky max-xl:top-0 max-xl:h-auto max-xl:aspect-video max-xl:shrink-0 max-xl:z-20 max-xl:bg-black max-xl:mb-2"
         >
-          <VideoPlayerControls
-            isPlaying={isPlaying}
-            isMuted={isMuted}
-            isFullscreen={isFullscreen}
-            currentTime={currentTime}
-            duration={duration}
-            volume={volume}
-            onPlayPause={handlePlayPause}
-            onMuteToggle={handleMuteToggle}
-            onFullscreenToggle={toggleFullscreen}
-            onSeek={handleSeek}
-            onVolumeChange={handleVolumeChange}
-            onSkip={handleSkip}
-          />
-        </div>
-      )}
-
-      <div className={`absolute top-4 right-4 transition-opacity duration-300 max-sm:sticky max-sm:top-2 max-sm:float-right max-sm:z-2 max-lg:absolute max-lg:top-2 max-lg:right-2 max-lg:z-20 max-xl:absolute max-xl:top-2 max-xl:right-2 max-xl:z-20 ${
-        showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
-      }`}>
-        <div className="flex items-center gap-2 max-sm:rounded-md max-lg:rounded-md max-xl:rounded-md">
-          {currentVideo && (
-            <button
-              onClick={handleRemoveCurrentVideo}
-              className="p-2 rounded-xl bg-red-500/80 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95"
-              title="Move current video to trash"
-            >
-              <FaTrash />
-            </button>
+          {currentVideo?.sourceId === 'youtube' ? (
+            <iframe
+              className="w-full h-full border-0"
+              src={`https://www.youtube-nocookie.com/embed/${currentVideo.relativePath}?autoplay=1&controls=1&rel=0`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              controls
+              src={currentVideo?.url}
+              className="w-full h-full object-contain"
+              onClick={handlePlayPause}
+              playsInline
+            />
           )}
-          <VideoFileUpload onFilesSelected={handleFilesSelected} />
-        </div>
-      </div>
 
-      {/* Thumbnail rail on the right */}
+          {/* Trash + Upload — top-left of video on desktop; top-right overlay on iPad/mobile */}
+          <div className={`absolute top-2 left-2 z-20 flex items-center gap-2 transition-opacity duration-300 max-sm:top-2 max-sm:right-2 max-sm:left-auto max-lg:top-2 max-lg:right-2 max-lg:left-auto max-xl:top-2 max-xl:right-2 max-xl:left-auto ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            {currentVideo && (
+              <button
+                onClick={handleRemoveCurrentVideo}
+                className="p-2 rounded-md bg-red-500/80 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 transition-all active:scale-95"
+                title="Move current video to trash"
+              >
+                <FaTrash />
+              </button>
+            )}
+            <VideoFileUpload onFilesSelected={handleFilesSelected} />
+          </div>
+        </div>
+
+        {/* Now-playing title — desktop */}
+        <div className="shrink-0 px-4 pt-3 pb-1 max-xl:hidden max-lg:hidden max-sm:hidden">
+          <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest mb-0.5">Now Playing</p>
+          <p className="text-white text-sm font-semibold truncate">{currentVideo?.name ?? ''}</p>
+        </div>
+
+        {/* Now-playing title — iPad only */}
+        <div className="hidden max-lg:flex max-xl:flex max-sm:hidden items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-sm shrink-0">
+          <span className="text-white/50 text-xs font-medium uppercase tracking-wider shrink-0">Now Playing</span>
+          <span className="text-white text-sm font-semibold truncate">{currentVideo?.name ?? ''}</span>
+        </div>
+
+        {/* VideoPlayerControls — desktop: below buttons; iPad/mobile: hidden */}
+        {currentVideo?.sourceId !== 'youtube' && (
+          <div className="mt-auto shrink-0 transition-opacity duration-300 max-sm:hidden max-lg:hidden max-xl:hidden">
+            <VideoPlayerControls
+              isPlaying={isPlaying}
+              isMuted={isMuted}
+              isFullscreen={isFullscreen}
+              currentTime={currentTime}
+              duration={duration}
+              volume={volume}
+              onPlayPause={handlePlayPause}
+              onMuteToggle={handleMuteToggle}
+              onFullscreenToggle={toggleFullscreen}
+              onSeek={handleSeek}
+              onVolumeChange={handleVolumeChange}
+              onSkip={handleSkip}
+            />
+          </div>
+        )}
+      </div>{/* end left column */}
+
+      {/* ── Right column: scrollable thumbnail rail ── */}
       {videos.length > 0 && (
-        <div className="absolute top-4 bottom-4 right-2 w-28 overflow-y-auto space-y-2 pr-1 max-sm:relative max-sm:shadow-2xl max-sm:w-full max-sm:right-0 max-sm:p-2 max-sm:overflow-y-scroll max-lg:relative max-lg:w-full max-lg:h-auto max-lg:right-auto max-lg:top-auto max-lg:bottom-auto max-lg:grid max-lg:grid-cols-2 max-sm:grid-cols-1 max-lg:gap-3 max-lg:space-y-0 max-lg:p-3 max-lg:overflow-y-auto max-lg:max-h-[calc(100vh-56vw-2rem)] max-xl:relative max-xl:w-full max-xl:h-auto max-xl:right-auto max-xl:top-auto max-xl:bottom-auto max-xl:grid max-xl:grid-cols-2 max-xl:gap-3 max-xl:space-y-0 max-xl:p-3 max-xl:overflow-y-auto max-xl:max-h-[calc(100vh-56vw-2rem)]">
+        <div className="w-44 flex flex-col shrink-0 overflow-y-auto border-l border-white/10 gap-2 p-2 max-sm:relative max-sm:shadow-2xl max-sm:w-full max-sm:right-0 max-sm:p-2 max-sm:overflow-y-scroll max-lg:relative max-lg:w-full max-lg:h-auto max-lg:right-auto max-lg:top-auto max-lg:bottom-auto max-lg:grid max-lg:grid-cols-2 max-sm:grid-cols-1 max-lg:gap-3 max-lg:space-y-0 max-lg:p-3 max-lg:overflow-y-auto max-lg:max-h-[calc(100vh-56vw-2rem)] max-xl:relative max-xl:w-full max-xl:h-auto max-xl:right-auto max-xl:top-auto max-xl:bottom-auto max-xl:grid max-xl:grid-cols-2 max-xl:gap-3 max-xl:space-y-0 max-xl:p-3 max-xl:overflow-y-auto max-xl:max-h-[calc(100vh-56vw-2rem)]">
           {videos.map((v, idx) => (
             <button
               key={v.id}
               onClick={() => handleSelectVideo(idx)}
-              className={`relative w-full flex flex-col items-center gap-1 rounded-xl overflow-hidden border transition-all max-sm:opacity-60 max-lg:opacity-85 max-xl:opacity-85 ${
-                idx === currentIndex
-                  ? 'border-emerald-400 bg-white/10 max-sm:opacity-80 max-sm:shadow-md max-sm:shadow-green-100 max-lg:shadow-[0_0_15px_rgba(52,211,153,0.15)] max-lg:opacity-100 max-xl:shadow-[0_0_15px_rgba(52,211,153,0.15)] max-xl:opacity-100'
-                  : 'border-white/15 bg-white/5 hover:bg-white/10'
-              }`}
+              className={`relative w-full flex flex-col items-center gap-1 rounded-md overflow-hidden border transition-all max-sm:opacity-60 max-lg:opacity-85 max-xl:opacity-85 ${idx === currentIndex
+                ? 'border-emerald-400 bg-white/10 max-sm:opacity-80 max-sm:shadow-md max-sm:shadow-green-100 max-lg:shadow-[0_0_15px_rgba(52,211,153,0.15)] max-lg:opacity-100 max-xl:shadow-[0_0_15px_rgba(52,211,153,0.15)] max-xl:opacity-100'
+                : 'border-white/15 bg-white/5 hover:bg-white/10'
+                }`}
             >
               <span
                 onClick={(e) => {
@@ -337,25 +341,6 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
                 muted
               />
               <span className={`px-2 pb-2 text-[11px] text-white/80 truncate w-full max-sm:text-left max-lg:text-sm max-lg:text-left max-lg:px-3 max-lg:pt-1 max-lg:text-white/90 max-xl:text-sm max-xl:text-left max-xl:px-3 max-xl:pt-1 max-xl:text-white/90 ${idx === currentIndex ? 'max-sm:bg-emerald-500/80 max-lg:bg-emerald-500/20 max-xl:bg-emerald-500/20' : ''}`}>{v.name}</span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Mini playlist chips */}
-      {videos.length > 1 && (
-        <div className="absolute bottom-24 left-0 right-0 flex flex-wrap justify-center gap-2 px-4 max-sm:hidden max-lg:hidden max-xl:hidden">
-          {videos.map((v, idx) => (
-            <button
-              key={v.id}
-              onClick={() => handleSelectVideo(idx)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                idx === currentIndex
-                  ? 'bg-emerald-500/80 text-white'
-                  : 'bg-white/15 text-white/70 hover:bg-white/25'
-              }`}
-            >
-              {v.name}
             </button>
           ))}
         </div>

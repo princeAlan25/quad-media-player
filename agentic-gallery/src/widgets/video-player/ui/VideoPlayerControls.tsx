@@ -49,10 +49,10 @@ export const VideoPlayerControls = memo(function VideoPlayerControls({
   }, [onVolumeChange]);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 pt-12">
-      {/* Progress Bar */}
+    <div className="w-full bg-black/60 backdrop-blur-sm px-4 pb-3 pt-2 flex flex-col gap-2">
+      {/* Progress Bar — sits right above the buttons */}
       <div 
-        className="w-full h-1.5 bg-white/20 rounded-full cursor-pointer mb-4 group"
+        className="w-full h-1.5 bg-white/20 rounded-full cursor-pointer group"
         onClick={handleProgressClick}
       >
         <div 
