@@ -80,11 +80,3 @@ export interface MediaIndexStats {
   updatedAt: string | null;
 }
 
-export interface MediaAnalysisStats {
-  enabled: boolean;
-  model?: string;
-  analyzed: number;
-  cached: number;
-  skipped: number;
-  failed: number;
-}

@@ -13,20 +13,17 @@ import type {
   MediaSyncSource,
   MediaType,
 } from '../../domain/media/types';
-import type { MediaIndexRepository, MediaSystemScanner } from './contracts';
+import type { MediaIndexRepository } from './contracts';
 
 interface MediaLibraryServiceDependencies {
   indexRepository: MediaIndexRepository;
-  systemScanner: MediaSystemScanner;
 }
 
 export class MediaLibraryService {
   private readonly indexRepository: MediaIndexRepository;
-  private readonly systemScanner: MediaSystemScanner;
 
-  constructor({ indexRepository, systemScanner }: MediaLibraryServiceDependencies) {
+  constructor({ indexRepository }: MediaLibraryServiceDependencies) {
     this.indexRepository = indexRepository;
-    this.systemScanner = systemScanner;
   }
 
   async getHealth() {
@@ -49,25 +46,6 @@ export class MediaLibraryService {
     };
   }
 
-  async scanSystemSources() {
-    const scanResult = await this.systemScanner.scanSystemSources();
-    const index = await this.replaceSourceDocumentsBatch(scanResult.sourceEntries);
-
-    return {
-      scannedSources: scanResult.summaries.length,
-      scannedItems: scanResult.summaries.reduce((total, summary) => total + summary.itemCount, 0),
-      skippedEntries: scanResult.skippedEntries,
-      sources: scanResult.summaries.map(summary => ({
-        id: summary.source.id,
-        label: summary.source.label,
-        rootPath: summary.rootPath,
-        itemCount: summary.itemCount,
-      })),
-      analysis: scanResult.analysis,
-      stats: buildStats(index.documents, index.updatedAt),
-    };
-  }
-
   async getMediaItem(mediaId: string) {
     const index = await this.indexRepository.readIndex();
     const document = findMediaDocumentById(index.documents, mediaId);
@@ -79,11 +57,6 @@ export class MediaLibraryService {
     return {
       document: toPublicDocument(document),
     };
-  }
-
-  async getMediaFile(mediaId: string): Promise<MediaDocument | null> {
-    const index = await this.indexRepository.readIndex();
-    return findMediaDocumentById(index.documents, mediaId);
   }
 
   async getMediaItems(ids: string[]) {
@@ -166,7 +139,7 @@ export class MediaLibraryService {
       title: track.name,
       artist: track.artist_name,
       mimeType: 'audio/mpeg',
-      relativePath: track.audio, // Important: Direct raw URL
+      relativePath: track.audio,
       size: 0,
       modifiedAt: Date.now(),
       keywords: [track.artist_name, ...(track.tags || []).map((t: any) => t.name || t)],
@@ -204,7 +177,7 @@ export class MediaLibraryService {
       title: item.snippet.title,
       artist: item.snippet.channelTitle,
       mimeType: 'video/mp4',
-      relativePath: item.id.videoId, // Direct YouTube ID
+      relativePath: item.id.videoId,
       size: 0,
       modifiedAt: Date.now(),
       keywords: [item.snippet.channelTitle, 'youtube', 'video'],
@@ -215,12 +188,5 @@ export class MediaLibraryService {
       query,
       documents
     };
-  }
-
-  private async replaceSourceDocumentsBatch(sourceEntries: Array<{ source: MediaSyncSource; documents: MediaDocument[] }>) {
-    const current = await this.indexRepository.readIndex();
-    const nextIndex = replaceDocumentsForSources(current, sourceEntries);
-    await this.indexRepository.saveIndex(nextIndex);
-    return nextIndex;
   }
 }
