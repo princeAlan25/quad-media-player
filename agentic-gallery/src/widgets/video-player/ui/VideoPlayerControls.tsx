@@ -1,8 +1,8 @@
-import { memo, useCallback } from 'react';
-import { 
-  FaPlay, 
-  FaPause, 
-  FaExpand, 
+import { memo, useCallback, useEffect } from 'react';
+import {
+  FaPlay,
+  FaPause,
+  FaExpand,
   FaCompress,
   FaBackward,
   FaForward
@@ -51,11 +51,11 @@ export const VideoPlayerControls = memo(function VideoPlayerControls({
   return (
     <div className="w-full bg-black/60 backdrop-blur-sm px-4 pb-3 pt-2 flex flex-col gap-2">
       {/* Progress Bar — sits right above the buttons */}
-      <div 
+      <div
         className="w-full h-1.5 bg-white/20 rounded-full cursor-pointer group"
         onClick={handleProgressClick}
       >
-        <div 
+        <div
           className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full relative"
           style={{ width: `${progress}%` }}
         >
@@ -74,7 +74,7 @@ export const VideoPlayerControls = memo(function VideoPlayerControls({
           >
             <FaBackward />
           </button>
-          
+
           <button
             onClick={onPlayPause}
             className="w-12 h-12 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white"
@@ -82,7 +82,7 @@ export const VideoPlayerControls = memo(function VideoPlayerControls({
           >
             {isPlaying ? <FaPause /> : <FaPlay className="ml-1" />}
           </button>
-          
+
           <button
             onClick={() => onSkip(10)}
             className="text-white/80 hover:text-white transition-colors p-2"
@@ -99,11 +99,11 @@ export const VideoPlayerControls = memo(function VideoPlayerControls({
             >
               {isMuted || volume === 0 ? <IoVolumeMute /> : <IoVolumeHigh />}
             </button>
-            <div 
+            <div
               className="w-20 h-1.5 bg-white/20 rounded-full cursor-pointer overflow-hidden"
               onClick={handleVolumeClick}
             >
-              <div 
+              <div
                 className="h-full bg-white rounded-full"
                 style={{ width: `${isMuted ? 0 : volume * 100}%` }}
               />

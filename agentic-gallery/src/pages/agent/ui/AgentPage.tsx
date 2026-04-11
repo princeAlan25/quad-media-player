@@ -9,15 +9,9 @@ import { ensurePuterSignIn, getPuterModel, readPuterSessionSnapshot, refreshPute
 import { useMediaLibrary } from '@/entities/media';
 import type { BackendMediaDocument, BackendMediaMatch, BackendMediaStats, MediaKind } from '@/shared/types/LibraryMedia';
 import type { PuterChatMessage, PuterChatResponse, PuterToolCall, PuterToolDefinition } from '@/shared/types/puter';
-import { MdMenuBook, MdMoreVert } from 'react-icons/md';
-import { RiMenu2Fill, RiMenuFill, RiMenuLine } from 'react-icons/ri';
-import { FcCloseUpMode } from 'react-icons/fc';
-import { BiCloset, BiSolidSend } from 'react-icons/bi';
+import { RiMenuFill } from 'react-icons/ri';
+import { BiSolidSend } from 'react-icons/bi';
 import { CgCloseR } from 'react-icons/cg';
-import { FiSend } from 'react-icons/fi';
-import { BsFillSendFill } from 'react-icons/bs';
-import { SiProgress } from 'react-icons/si';
-import { FaTruckLoading } from 'react-icons/fa';
 import { VscLoading } from 'react-icons/vsc';
 
 type ChatRole = 'assistant' | 'user' | 'tool';
@@ -668,8 +662,8 @@ export const AgentPage = () => {
   }, [conversation, executeToolCall, isRunning, query, toolDefinitions]);
 
   const sidebarTogglingHandler = useCallback(() => {
-      setShowSideBar(prev => !prev);
-    }, [showSideBar])
+    setShowSideBar(prev => !prev);
+  }, [showSideBar])
 
   return (
     <div className="w-full min-h-[calc(100vh-6rem)] grid grid-cols-[minmax(320px,380px)_1fr] gap-6 max-sm:max-w-full max-sm:flex justify-center items-center max-sm:rounded-md max-sm:h-[96vh] max-sm:overflow-hidden max-sm:*:border-0">
@@ -874,10 +868,10 @@ export const AgentPage = () => {
             <div
               key={line.id}
               className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 max-sm:text-xs max-sm:leading-4 max-sm:rounded-md max-sm:p-2 max-sm:border-none ${line.role === 'user'
-                  ? 'ml-auto bg-cyan-400/20 border border-cyan-300/20 text-white max-sm:min-w-[84%]'
-                  : line.role === 'tool'
-                    ? 'bg-white/6 border border-white/8 text-white/70 max-sm:max-w-full'
-                    : 'bg-white/10 border border-white/10 text-white max-sm:max-w-full'
+                ? 'ml-auto bg-cyan-400/20 border border-cyan-300/20 text-white max-sm:min-w-[84%]'
+                : line.role === 'tool'
+                  ? 'bg-white/6 border border-white/8 text-white/70 max-sm:max-w-full'
+                  : 'bg-white/10 border border-white/10 text-white max-sm:max-w-full'
                 } wrap-break-word whitespace-pre-wrap`}
             >
               {line.content}

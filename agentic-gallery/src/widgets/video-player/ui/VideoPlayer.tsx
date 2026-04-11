@@ -78,7 +78,8 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('ended', handleEnded);
     };
-  }, []);
+  }, [isPlaying, currentTime, duration]);
+
 
   // Keep element volume in sync
   useEffect(() => {
@@ -104,19 +105,19 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
   const handlePlayPause = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
-
     if (video.paused) {
       video.play().catch(console.error);
     } else {
       video.pause();
     }
+    console.log("clicked")
   }, []);
 
   const handleSeek = useCallback((time: number) => {
     const video = videoRef.current;
     if (!video) return;
     video.currentTime = Math.max(0, Math.min(time, duration));
-  }, [duration]);
+  }, [currentTime]);
 
   const handleVolumeChange = useCallback((newVolume: number) => {
     setVolume(newVolume);
@@ -178,9 +179,14 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
   }, [currentVideo, handleRemoveVideo]);
 
   const handleSelectVideo = useCallback((index: number) => {
-    if (index === currentIndex) return;
+    if (index === currentIndex) {
+      handlePlayPause();
+      return;
+    };
     setCurrentIndex(index);
     setIsPlaying(true);
+    handlePlayPause();
+    return;
   }, [currentIndex]);
 
   useEffect(() => {
@@ -199,7 +205,7 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
     if (isPlaying) {
       el.play().catch(() => undefined);
     }
-  }, [currentVideo, isPlaying]);
+  }, [currentVideo]);
 
   useEffect(() => {
     if (focusRequest?.type !== 'video') {
