@@ -6,6 +6,7 @@ import cors from 'cors';
 import { MediaLibraryService } from './application/media/MediaLibraryService';
 import { FileMediaIndexRepository } from './infrastructure/persistence/FileMediaIndexRepository';
 import { createMediaRouter } from './presentation/http/createMediaRouter';
+import { createAiRouter } from './presentation/http/createAiRouter';
 
 const app = express();
 const port = Number(process.env.PORT ?? 4000);
@@ -23,6 +24,10 @@ app.use(
     exposedHeaders: ['Accept-Ranges', 'Content-Length', 'Content-Range', 'Content-Type'],
   }),
 );
+
+// Register AI Router
+app.use(createAiRouter());
+
 app.use(createMediaRouter({ mediaLibraryService }));
 
 app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
