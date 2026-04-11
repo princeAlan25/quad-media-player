@@ -153,7 +153,7 @@ const ImageGalleryContent = () => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full bg-black rounded-4xl overflow-hidden max-sm:rounded-md max-sm:p-0 max-sm:min-h-[96vh]"
+      className="relative w-full h-full bg-black rounded-4xl overflow-hidden max-sm:p-2 max-sm:rounded-md max-sm:min-h-[96vh]"
       onMouseMove={showControlsTemporarily}
       onMouseLeave={() => setShowControls(false)}
     >
@@ -197,7 +197,7 @@ const ImageGalleryContent = () => {
           <p className="text-white text-sm truncate max-w-md mx-auto max-sm:mb-20">{currentImage.name}</p>
         </div>
 
-        <div className="flex justify-center gap-4 max-sm:*:scale-80 max-sm:[&>button]:h-10 max-sm:items-center max-sm:gap-2 max-sm:rounded-md">
+        <div className="flex justify-center gap-4 max-sm:mb-6 max-sm:*:scale-80 max-sm:[&>button]:h-10 max-sm:items-center max-sm:gap-2 max-sm:rounded-md">
           <button
             onClick={toggleSlideshow}
             className="p-3 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
@@ -223,7 +223,7 @@ const ImageGalleryContent = () => {
         </div>
       </div>
 
-      <div className={`absolute bottom-24 max-sm:bottom-16 left-0 right-0 flex justify-center gap-2 px-4 transition-opacity duration-300 ${
+      <div className={`absolute bottom-24 max-sm:bottom-24 left-0 right-0 flex justify-center gap-2 px-4 transition-opacity duration-300 ${
         showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}>
         {images.slice(Math.max(0, currentIndex - 2), currentIndex + 3).map((img, idx) => {
