@@ -27,7 +27,7 @@ export const AudioControlButtons = memo(function AudioControlButtons({
   }, [repeatMode]);
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full">
+    <div className="flex flex-col items-center gap-4 w-full max-sm:gap-0">
       {/* Repeat & Shuffle Row */}
       <div className="flex justify-center gap-8 w-full">
         <button
@@ -47,7 +47,7 @@ export const AudioControlButtons = memo(function AudioControlButtons({
       </div>
 
       {/* Main Controls */}
-      <div className="flex justify-center items-center gap-6">
+      <div className="flex justify-center items-center gap-6 max-sm:*:scale-80">
         <button
           onClick={onPrevious}
           className="p-4 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-200 active:scale-90 text-white shadow-lg"

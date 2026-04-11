@@ -16,12 +16,12 @@ export const PlaylistPanel = memo(function PlaylistPanel({
   }, [onUpload]);
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="relative w-full h-full flex flex-col">
       <div className="flex justify-between items-center px-4 py-2">
         <h3 className="text-white font-semibold">Playlist</h3>
         <AudioFileUpload onFilesSelected={handleUpload} />
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden max-sm:max-h-[40vh] max-sm:overflow-y-scroll">
         <AudioPlaylist
           audios={audios}
           currentAudioId={currentAudioId}

@@ -10,7 +10,7 @@ function App() {
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(rgba(255,255,255,0.08)_1px,transparent_1px)] bg-size-[100px_100px]" />
       </div>
 
-      <div className="relative z-10 min-h-screen w-full p-4">
+      <div className="relative z-10 min-h-screen w-full p-4 max-sm:p-1">
         <AppShell />
       </div>
     </div>

@@ -13,20 +13,17 @@ import type {
   MediaSyncSource,
   MediaType,
 } from '../../domain/media/types';
-import type { MediaIndexRepository, MediaSystemScanner } from './contracts';
+import type { MediaIndexRepository } from './contracts';
 
 interface MediaLibraryServiceDependencies {
   indexRepository: MediaIndexRepository;
-  systemScanner: MediaSystemScanner;
 }
 
 export class MediaLibraryService {
   private readonly indexRepository: MediaIndexRepository;
-  private readonly systemScanner: MediaSystemScanner;
 
-  constructor({ indexRepository, systemScanner }: MediaLibraryServiceDependencies) {
+  constructor({ indexRepository }: MediaLibraryServiceDependencies) {
     this.indexRepository = indexRepository;
-    this.systemScanner = systemScanner;
   }
 
   async getHealth() {
@@ -49,25 +46,6 @@ export class MediaLibraryService {
     };
   }
 
-  async scanSystemSources() {
-    const scanResult = await this.systemScanner.scanSystemSources();
-    const index = await this.replaceSourceDocumentsBatch(scanResult.sourceEntries);
-
-    return {
-      scannedSources: scanResult.summaries.length,
-      scannedItems: scanResult.summaries.reduce((total, summary) => total + summary.itemCount, 0),
-      skippedEntries: scanResult.skippedEntries,
-      sources: scanResult.summaries.map(summary => ({
-        id: summary.source.id,
-        label: summary.source.label,
-        rootPath: summary.rootPath,
-        itemCount: summary.itemCount,
-      })),
-      analysis: scanResult.analysis,
-      stats: buildStats(index.documents, index.updatedAt),
-    };
-  }
-
   async getMediaItem(mediaId: string) {
     const index = await this.indexRepository.readIndex();
     const document = findMediaDocumentById(index.documents, mediaId);
@@ -79,11 +57,6 @@ export class MediaLibraryService {
     return {
       document: toPublicDocument(document),
     };
-  }
-
-  async getMediaFile(mediaId: string): Promise<MediaDocument | null> {
-    const index = await this.indexRepository.readIndex();
-    return findMediaDocumentById(index.documents, mediaId);
   }
 
   async getMediaItems(ids: string[]) {
@@ -145,10 +118,75 @@ export class MediaLibraryService {
     };
   }
 
-  private async replaceSourceDocumentsBatch(sourceEntries: Array<{ source: MediaSyncSource; documents: MediaDocument[] }>) {
-    const current = await this.indexRepository.readIndex();
-    const nextIndex = replaceDocumentsForSources(current, sourceEntries);
-    await this.indexRepository.saveIndex(nextIndex);
-    return nextIndex;
+  async searchJamendo(query: string, limit: number) {
+    const clientId = process.env.JAMENDO_CLIENT_ID || '56d30c95';
+    const response = await fetch(`https://api.jamendo.com/v3.0/tracks/?client_id=${clientId}&format=jsonpretty&limit=${limit}&search=${encodeURIComponent(query)}`);
+    
+    if (!response.ok) {
+      throw new Error(`Jamendo API failed with status ${response.status}`);
+    }
+    
+    const data = (await response.json()) as { results?: any[] };
+    const results = data.results || [];
+    
+    const documents: MediaDocument[] = results.map((track: any) => ({
+      id: `jamendo-${track.id}`,
+      type: 'audio',
+      sourceId: 'jamendo',
+      sourceLabel: 'Jamendo Music',
+      sourceMode: 'system',
+      fileName: `${track.name}.mp3`,
+      title: track.name,
+      artist: track.artist_name,
+      mimeType: 'audio/mpeg',
+      relativePath: track.audio,
+      size: 0,
+      modifiedAt: Date.now(),
+      keywords: [track.artist_name, ...(track.tags || []).map((t: any) => t.name || t)],
+      tags: ['jamendo', 'audio']
+    }));
+
+    return {
+      query,
+      documents
+    };
+  }
+
+  async searchYouTube(query: string, limit: number) {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey || apiKey === 'your_youtube_api_key_here') {
+      throw new Error(`YOUTUBE_API_KEY is not configured in the backend environment.`);
+    }
+
+    const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&maxResults=${limit}&type=video&key=${apiKey}`);
+    
+    if (!response.ok) {
+      throw new Error(`YouTube API failed with status ${response.status}`);
+    }
+    
+    const data = (await response.json()) as { items?: any[] };
+    const items = data.items || [];
+    
+    const documents: MediaDocument[] = items.map((item: any) => ({
+      id: `youtube-${item.id.videoId}`,
+      type: 'video',
+      sourceId: 'youtube',
+      sourceLabel: 'YouTube',
+      sourceMode: 'system',
+      fileName: `${item.snippet.title}.mp4`,
+      title: item.snippet.title,
+      artist: item.snippet.channelTitle,
+      mimeType: 'video/mp4',
+      relativePath: item.id.videoId,
+      size: 0,
+      modifiedAt: Date.now(),
+      keywords: [item.snippet.channelTitle, 'youtube', 'video'],
+      tags: ['youtube', 'video']
+    }));
+
+    return {
+      query,
+      documents
+    };
   }
 }

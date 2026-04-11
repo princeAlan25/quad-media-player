@@ -4,11 +4,15 @@ import { FaArrowRotateRight, FaFolderOpen, FaLink, FaTrash } from 'react-icons/f
 import type { AudioItem } from '@/shared/types/AudioItem';
 import type { ImageItem } from '@/shared/types/ImageItem';
 import type { VideoItem } from '@/shared/types/VideoItem';
-import { fetchBackendHealth, fetchMediaDocument, fetchMediaDocuments, fetchMediaLibrary, fetchRagContext, getBackendMediaUrl, scanSystemMediaLibrary, searchMediaLibrary } from '@/shared/api/backendApi';
+import { fetchBackendHealth, fetchMediaDocument, fetchMediaDocuments, fetchMediaLibrary, fetchRagContext, searchMediaLibrary, searchJamendoMusic, searchYouTubeVideo } from '@/shared/api/backendApi';
 import { ensurePuterSignIn, getPuterModel, readPuterSessionSnapshot, refreshPuterSessionSnapshot, retryPuterSignIn, subscribeToPuterSessionUpdates } from '@/shared/lib/puterAuth';
 import { useMediaLibrary } from '@/entities/media';
 import type { BackendMediaDocument, BackendMediaMatch, BackendMediaStats, MediaKind } from '@/shared/types/LibraryMedia';
 import type { PuterChatMessage, PuterChatResponse, PuterToolCall, PuterToolDefinition } from '@/shared/types/puter';
+import { RiMenuFill } from 'react-icons/ri';
+import { BiSolidSend } from 'react-icons/bi';
+import { CgCloseR } from 'react-icons/cg';
+import { VscLoading } from 'react-icons/vsc';
 
 type ChatRole = 'assistant' | 'user' | 'tool';
 
@@ -85,15 +89,14 @@ export const AgentPage = () => {
     },
   ]);
   const [conversation, setConversation] = useState<PuterChatMessage[]>([
-    {
+     {
       role: 'system',
-      content: 'You are a media RAG assistant for a local media player. Search across the indexed PC media library, which may include AI-generated visual summaries, OCR text, and video scene tags for better retrieval. Use search_media to inspect results, use collect_media when the user wants many or all matching files loaded into the app, use open_media to focus one exact item, and never invent IDs or claim files exist unless a tool returns them. Be concise and practical.',
+      content: 'You are a media RAG assistant for a cloud media player. Search across the synchronized media index. Use search_media to inspect results, use collect_media when the user wants many or all matching files loaded into the app, use open_media to focus one exact item, and never invent IDs or claim files exist unless a tool returns them. If the user asks for new music, songs, or artists, you must use search_jamendo_music. If the user asks for new videos, movies, or clips, you must use search_youtube_video to find and stream real videos directly from the cloud. Be concise and practical.',
     },
   ]);
   const [isRunning, setIsRunning] = useState(false);
-  const [isSystemScanning, setIsSystemScanning] = useState(false);
-  const [systemScanMessage, setSystemScanMessage] = useState('Scan readable folders on this PC directly from the backend so the agent can search and open them without browser folder imports. If backend AI analysis is configured, images and smaller videos are also classified for richer search.');
   const [puterSession, setPuterSession] = useState(() => readPuterSessionSnapshot());
+  const [showSideBar, setShowSideBar] = useState<boolean>(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   const localCounts = useMemo(() => ({
@@ -134,33 +137,7 @@ export const AgentPage = () => {
     await retryPuterSignIn();
   }, []);
 
-  const runBackendMediaScan = useCallback(async () => {
-    setIsSystemScanning(true);
-    try {
-      const result = await scanSystemMediaLibrary();
-      const skippedMessage = result.skippedEntries > 0
-        ? ` Skipped ${result.skippedEntries} unreadable or protected entries.`
-        : '';
-      const analysisMessage = result.analysis
-        ? result.analysis.analyzed > 0 || result.analysis.cached > 0
-          ? ` Visual analysis enriched ${result.analysis.analyzed} new files and reused ${result.analysis.cached} cached results.`
-          : result.analysis.enabled
-            ? ' Visual analysis is enabled, but no eligible image or video files were enriched in this pass.'
-            : ''
-        : '';
-      setSystemScanMessage(
-        `Indexed ${result.scannedItems} media files from ${result.scannedSources} PC folders.${skippedMessage}${analysisMessage}`,
-      );
-      await refreshBackendIndexStats();
-      return result;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to scan this computer for media.';
-      setSystemScanMessage(message);
-      throw error;
-    } finally {
-      setIsSystemScanning(false);
-    }
-  }, [refreshBackendIndexStats]);
+
 
   const addBackendDocumentsToLibrary = useCallback((
     documents: BackendMediaDocument[],
@@ -173,11 +150,9 @@ export const AgentPage = () => {
       ...images.map(item => item.id),
     ]);
 
-    const openableDocuments = uniqueDocuments.filter(document =>
-      loadedIds.has(document.id) || document.sourceMode === 'system',
-    );
+    const openableDocuments = uniqueDocuments;
     const documentsToAdd = openableDocuments.filter(document =>
-      !loadedIds.has(document.id) && document.sourceMode === 'system',
+      !loadedIds.has(document.id),
     );
 
     const audioItems: AudioItem[] = [];
@@ -185,7 +160,7 @@ export const AgentPage = () => {
     const imageItems: ImageItem[] = [];
 
     for (const document of documentsToAdd) {
-      const backendUrl = getBackendMediaUrl(document.id);
+      const backendUrl = document.sourceId === 'jamendo' ? document.relativePath : document.relativePath;
 
       if (document.type === 'audio') {
         audioItems.push({
@@ -280,10 +255,10 @@ export const AgentPage = () => {
       },
       opened: openedDocument
         ? {
-            id: openedDocument.id,
-            title: openedDocument.title,
-            type: openedDocument.type,
-          }
+          id: openedDocument.id,
+          title: openedDocument.title,
+          type: openedDocument.type,
+        }
         : null,
     };
   }, [addAudios, addImages, addVideos, audios, images, navigate, requestMediaFocus, videos]);
@@ -371,10 +346,40 @@ export const AgentPage = () => {
       type: 'function',
       function: {
         name: 'refresh_library',
-        description: 'Rescan already-connected local directories and refresh the local index.',
+        description: 'Rescan already-connected browser directories and refresh the local index.',
         parameters: {
           type: 'object',
           properties: {},
+        },
+      },
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'search_jamendo_music',
+        description: 'Search Jamendo for new music/songs/artists to stream from the cloud. Returns a list of playable audio tracks.',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'The song title, artist, or genre to search for.' },
+            limit: { type: 'number', description: 'Maximum number of tracks to return. Default 10.' },
+          },
+          required: ['query'],
+        },
+      },
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'search_youtube_video',
+        description: 'Search YouTube for new videos to stream from the cloud. Returns a list of playable video tracks.',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'The video title or topic to search for.' },
+            limit: { type: 'number', description: 'Maximum number of videos to return. Default 10.' },
+          },
+          required: ['query'],
         },
       },
     },
@@ -382,6 +387,28 @@ export const AgentPage = () => {
 
   const executeToolCall = useCallback(async (toolCall: PuterToolCall) => {
     const args = JSON.parse(toolCall.function.arguments || '{}') as Record<string, unknown>;
+
+    if (toolCall.function.name === 'search_youtube_video') {
+      const result = await searchYouTubeVideo(
+        String(args.query ?? ''),
+        typeof args.limit === 'number' ? args.limit : 10,
+      );
+      return {
+        query: result.query,
+        ...addBackendDocumentsToLibrary(result.documents, { openFirst: true }),
+      };
+    }
+
+    if (toolCall.function.name === 'search_jamendo_music') {
+      const result = await searchJamendoMusic(
+        String(args.query ?? ''),
+        typeof args.limit === 'number' ? args.limit : 10,
+      );
+      return {
+        query: result.query,
+        ...addBackendDocumentsToLibrary(result.documents, { openFirst: true }),
+      };
+    }
 
     if (toolCall.function.name === 'search_media') {
       const result = await fetchRagContext(
@@ -432,10 +459,10 @@ export const AgentPage = () => {
           : requestedType === 'image'
             ? images.map(item => ({ id: item.id, title: item.name }))
             : [
-                ...audios.slice(0, 3).map(item => ({ id: item.id, title: item.title, type: 'audio' })),
-                ...videos.slice(0, 3).map(item => ({ id: item.id, title: item.name, type: 'video' })),
-                ...images.slice(0, 3).map(item => ({ id: item.id, title: item.name, type: 'image' })),
-              ];
+              ...audios.slice(0, 3).map(item => ({ id: item.id, title: item.title, type: 'audio' })),
+              ...videos.slice(0, 3).map(item => ({ id: item.id, title: item.name, type: 'video' })),
+              ...images.slice(0, 3).map(item => ({ id: item.id, title: item.name, type: 'image' })),
+            ];
 
       return {
         counts: localCounts,
@@ -467,13 +494,6 @@ export const AgentPage = () => {
       }
 
       const { document } = await fetchMediaDocument(mediaId);
-      if (document.sourceMode !== 'system') {
-        return {
-          ok: false,
-          error: 'That media item is not currently loaded locally. Rescan your browser folders or scan the PC again.',
-        };
-      }
-
       const collection = addBackendDocumentsToLibrary([document], { openFirst: true });
       return {
         ...collection,
@@ -483,19 +503,17 @@ export const AgentPage = () => {
     }
 
     if (toolCall.function.name === 'refresh_library') {
-      const systemScan = await runBackendMediaScan();
       if (syncedSources.length > 0) {
         await rescanDirectorySources();
       }
       return {
         ok: true,
         syncedSources: syncedSources.length,
-        systemScan,
       };
     }
 
     return { ok: false, error: `Unknown tool: ${toolCall.function.name}` };
-  }, [addBackendDocumentsToLibrary, audios, images, localCounts, navigate, requestMediaFocus, rescanDirectorySources, runBackendMediaScan, syncedSources.length, videos]);
+  }, [addBackendDocumentsToLibrary, audios, images, localCounts, navigate, requestMediaFocus, rescanDirectorySources, syncedSources.length, videos]);
 
   const sendPromptToAgent = useCallback(async () => {
     const prompt = query.trim();
@@ -525,7 +543,7 @@ export const AgentPage = () => {
     try {
       await ensurePuterSignIn();
 
-      for (let step = 0; step < 5; step += 1) {
+      for (let step = 0; step < 10; step += 1) {
         const response = await window.puter.ai.chat(workingConversation, {
           model: getPuterModel(),
           tools: toolDefinitions,
@@ -553,6 +571,10 @@ export const AgentPage = () => {
 
           if (toolCall.function.name === 'search_media') {
             summary = `Ran ${toolCall.function.name} and found ${((result as { matches?: BackendMediaMatch[] }).matches ?? []).length} matches.`;
+          } else if (toolCall.function.name === 'search_jamendo_music') {
+            summary = `Searched Jamendo music and loaded ${((result as any).added ?? 0)} new tracks into the app.`;
+          } else if (toolCall.function.name === 'search_youtube_video') {
+            summary = `Searched YouTube videos and loaded ${((result as any).added ?? 0)} new videos into the app.`;
           } else if (toolCall.function.name === 'collect_media') {
             const collectResult = result as {
               matched?: number;
@@ -600,14 +622,21 @@ export const AgentPage = () => {
     }
   }, [conversation, executeToolCall, isRunning, query, toolDefinitions]);
 
+  const sidebarTogglingHandler = useCallback(() => {
+    setShowSideBar(prev => !prev);
+  }, [showSideBar])
+
   return (
-    <div className="w-full min-h-[calc(100vh-6rem)] grid grid-cols-[minmax(320px,380px)_1fr] gap-6">
-      <section className={`${glassPanelClass} p-5 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-scroll`}>
+    <div className="w-full min-h-[calc(100vh-6rem)] grid grid-cols-[minmax(320px,380px)_1fr] gap-6 max-sm:max-w-full max-sm:flex justify-center items-center max-sm:rounded-md max-sm:h-[96vh] max-sm:overflow-hidden max-sm:*:border-0">
+      <button type="button" className='hidden absolute invert-75 bg-black/20 top-0 left-0 my-2 mx-2 p-2 overflow-hidden rounded-md max-sm:block' onClick={sidebarTogglingHandler}>
+        {!showSideBar ? <RiMenuFill className='invert-100' /> : <CgCloseR className='invert-100' />}
+      </button>
+      <section className={`${glassPanelClass} p-5 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-scroll max-sm:rounded-md ${showSideBar ? "max-sm:block" : "max-sm:hidden"}`}>
         <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">Agentic RAG</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">Your Agent Space</p>
           <h1 className="text-3xl font-semibold text-white">Media Control Room</h1>
           <p className="text-sm text-white/60">
-            Let the backend scan your PC folders directly or connect browser folders manually, then use Puter tool-calling to retrieve and open media.
+            Let the agent help or yourself scan your device media you want to play directly here without any manual search effort.
           </p>
         </div>
 
@@ -626,7 +655,7 @@ export const AgentPage = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/8 p-4 space-y-3">
+        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/8 p-4 space-y-3 hidden">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-white">Puter Agent</p>
@@ -652,23 +681,7 @@ export const AgentPage = () => {
           <p className="text-xs text-white/55">{puterSession.message}</p>
         </div>
 
-        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/8 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-white">Computer Scan</p>
-              <p className="text-xs text-white/55">The backend scans readable folders under your Windows user profile directly, including subfolders, and can classify images or smaller videos for better search when configured.</p>
-            </div>
-            <button
-              onClick={() => void runBackendMediaScan()}
-              disabled={isSystemScanning}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-60 transition-colors"
-            >
-              <FaFolderOpen className="text-sm" />
-              <span className="text-sm">{isSystemScanning ? 'Scanning PC...' : 'Scan PC'}</span>
-            </button>
-          </div>
-          <p className="text-xs text-white/55">{systemScanMessage}</p>
-        </div>
+
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
           <div className="flex items-center justify-between">
@@ -731,7 +744,7 @@ export const AgentPage = () => {
           </div>
 
           <p className="text-xs text-white/50">
-            This section is optional. Use it only for browser-managed folder handles. Direct PC access is handled by the Computer Scan above.
+            This section is optional. Use it only for browser-managed folder handles. Direct Device access is handled by the Device Scan above.
           </p>
 
           {!supportsDirectorySync && (
@@ -777,35 +790,34 @@ export const AgentPage = () => {
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm font-medium text-white">Backend Index</p>
+          <p className="text-sm font-medium text-white">Device Media Sync</p>
           <p className="text-xs text-white/55 mt-1">
             {backendStats
               ? `${backendStats.total} indexed items across ${backendStats.sources} sources`
-              : 'Backend is not reachable yet.'}
+              : 'no media found yet.'}
           </p>
         </div>
       </section>
 
-      <section className={`${glassPanelClass} p-5 flex flex-col h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden`}>
-        <div className="mb-4">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">Conversation</p>
-          <h2 className="text-2xl font-semibold text-white mt-2">Ask the agent</h2>
+      <section ref={chatScrollRef} className={`${glassPanelClass} p-5 flex flex-col h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden max-sm:max-h-[84vh] max-sm:p-0 max-sm:-mt-4 max-sm:rounded-md max-sm:overflow-y-scroll ${showSideBar ? "max-sm:hidden" : "max-sm:block"}`}>
+        <div className="mb-4 max-sm:m-2">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/40 max-sm:hidden">Conversation</p>
+          <h2 className="text-2xl font-semibold text-white mt-2 max-sm:mt-0 max-sm:text-sm">Ask the agent</h2>
         </div>
 
         <div
           ref={chatScrollRef}
-          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden space-y-3 pr-2"
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden space-y-3 pr-2 max-sm:pr-0 max-sm:min-h-[82%]"
         >
           {chatLines.map(line => (
             <div
               key={line.id}
-              className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 ${
-                line.role === 'user'
-                  ? 'ml-auto bg-cyan-400/20 border border-cyan-300/20 text-white'
-                  : line.role === 'tool'
-                    ? 'bg-white/6 border border-white/8 text-white/70'
-                    : 'bg-white/10 border border-white/10 text-white'
-              } wrap-break-word whitespace-pre-wrap`}
+              className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 max-sm:text-xs max-sm:leading-4 max-sm:rounded-md max-sm:p-2 max-sm:border-none ${line.role === 'user'
+                ? 'ml-auto bg-cyan-400/20 border border-cyan-300/20 text-white max-sm:min-w-[84%]'
+                : line.role === 'tool'
+                  ? 'bg-white/6 border border-white/8 text-white/70 max-sm:max-w-full'
+                  : 'bg-white/10 border border-white/10 text-white max-sm:max-w-full'
+                } wrap-break-word whitespace-pre-wrap`}
             >
               {line.content}
             </div>
@@ -817,20 +829,20 @@ export const AgentPage = () => {
             event.preventDefault();
             void sendPromptToAgent();
           }}
-          className="mt-4 flex shrink-0 gap-3"
+          className="mt-4 flex shrink-0 gap-3 max-sm:sticky bottom-0 max-sm:min-w-ful max-sm:min-h-[10%] max-sm:bottom-0 max-sm:gap-x-0"
         >
           <textarea
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Find and collect my gospel songs, open the wedding album, or refresh the library."
-            className="flex-1 resize-none min-h-24 rounded-2xl bg-black/25 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/50"
+            className="flex-1 resize-none min-h-24 rounded-2xl bg-black/25 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/50 max-sm:rounded-md max-sm:min-h-full max-sm:text-xs max-sm:min-w-[80%] max-sm:bg-black invert-75"
           />
           <button
             type="submit"
             disabled={isRunning || !query.trim()}
-            className="px-5 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 text-slate-950 font-semibold disabled:opacity-50"
+            className="px-5 rounded-2xl bg-linear-to-br from-cyan-400 to-blue-500 text-slate-950 font-semibold disabled:opacity-50 max-sm:scale-80 max-sm:rounded-xlg"
           >
-            {isRunning ? 'Working...' : 'Ask'}
+            {isRunning ? <VscLoading className='animate-spin' /> : <BiSolidSend className='m-auto' />}
           </button>
         </form>
       </section>

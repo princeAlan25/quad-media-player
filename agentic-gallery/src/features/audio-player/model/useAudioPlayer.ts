@@ -13,7 +13,7 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     removeAudio: removeAudioFromLibrary,
     focusRequest,
   } = useMediaLibrary();
-  
+
   const [currentIndex, setCurrentIndexState] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -24,8 +24,8 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
   const [shuffle, setShuffle] = useState<boolean>(false);
 
   // Computed values
-  const currentAudio = useMemo(() => 
-    audios[currentIndex] || null, 
+  const currentAudio = useMemo(() =>
+    audios[currentIndex] || null,
     [audios, currentIndex]
   );
 
@@ -110,10 +110,16 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
 
   const setRepeatMode = useCallback((mode: RepeatMode) => {
     setRepeatModeState(mode);
-  }, []);
+    if (repeatMode !== "none") {
+      setShuffle(false);
+    }
+  }, [repeatMode]);
 
   const toggleShuffle = useCallback(() => {
     setShuffle(prev => !prev);
+    if (!shuffle) {
+      setRepeatMode("none");
+    }
   }, []);
 
   const setCurrentIndex = useCallback((index: number, autoPlay = true) => {
@@ -162,6 +168,23 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     });
   }, [audios, removeAudioFromLibrary]);
 
+  const handleAudioEnded = useCallback((audio: HTMLAudioElement) => {
+    if (audioRef.current?.ended) {
+      if (repeatMode === 'one') {
+        audio.currentTime = 0;
+        audio.play();
+      } else if ((repeatMode === 'all' || currentIndex < audios.length - 1)) {
+        next();
+      } else {
+        !shuffle && setIsPlaying(false);
+      }
+      if (shuffle) {
+        setCurrentIndex(Math.floor(Math.max(0, Math.random() * audios.length - 1)));
+        setIsPlaying(true);
+      }
+    }
+  }, [currentTime]);
+
   // Audio element event handlers
   useEffect(() => {
     const audio = audioRef.current;
@@ -169,33 +192,24 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
 
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleLoadedMetadata = () => setDuration(audio.duration);
-    const handleEnded = () => {
-      if (repeatMode === 'one') {
-        audio.currentTime = 0;
-        audio.play();
-      } else if (repeatMode === 'all' || currentIndex < audios.length - 1) {
-        next();
-      } else {
-        setIsPlaying(false);
-      }
-    };
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
+      handleAudioEnded(audio);
     };
-  }, [repeatMode, currentIndex, audios.length, next]);
+  }, [repeatMode, currentIndex, audios.length, next, currentTime]);
+
+
 
   // Keep index within bounds when playlist changes
   useEffect(() => {

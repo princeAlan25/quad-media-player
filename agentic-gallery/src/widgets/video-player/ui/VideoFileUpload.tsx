@@ -20,7 +20,7 @@ export const VideoFileUpload = memo(function VideoFileUpload({ onFilesSelected }
   };
 
   return (
-    <div className="relative">
+    <div className="flex max-sm:w-full justify-center">
       <input
         ref={inputRef}
         type="file"
