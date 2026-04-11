@@ -4,7 +4,7 @@ import { FaArrowRotateRight, FaFolderOpen, FaLink, FaTrash } from 'react-icons/f
 import type { AudioItem } from '@/shared/types/AudioItem';
 import type { ImageItem } from '@/shared/types/ImageItem';
 import type { VideoItem } from '@/shared/types/VideoItem';
-import { fetchBackendHealth, fetchMediaDocument, fetchMediaDocuments, fetchMediaLibrary, fetchRagContext, getBackendMediaUrl, scanSystemMediaLibrary, searchMediaLibrary, searchJamendoMusic, searchYouTubeVideo } from '@/shared/api/backendApi';
+import { fetchBackendHealth, fetchMediaDocument, fetchMediaDocuments, fetchMediaLibrary, fetchRagContext, searchMediaLibrary, searchJamendoMusic, searchYouTubeVideo } from '@/shared/api/backendApi';
 import { ensurePuterSignIn, getPuterModel, readPuterSessionSnapshot, refreshPuterSessionSnapshot, retryPuterSignIn, subscribeToPuterSessionUpdates } from '@/shared/lib/puterAuth';
 import { useMediaLibrary } from '@/entities/media';
 import type { BackendMediaDocument, BackendMediaMatch, BackendMediaStats, MediaKind } from '@/shared/types/LibraryMedia';
@@ -89,14 +89,12 @@ export const AgentPage = () => {
     },
   ]);
   const [conversation, setConversation] = useState<PuterChatMessage[]>([
-    {
+     {
       role: 'system',
-      content: 'You are a media RAG assistant for a local media player. Search across the indexed PC media library, which may include AI-generated visual summaries, OCR text, and video scene tags for better retrieval. Use search_media to inspect results, use collect_media when the user wants many or all matching files loaded into the app, use open_media to focus one exact item, and never invent IDs or claim files exist unless a tool returns them. If the user asks for new music, songs, or artists, you must use search_jamendo_music. If the user asks for new videos, movies, or clips, you must use search_youtube_video to find and stream real videos directly from the cloud. Be concise and practical.',
+      content: 'You are a media RAG assistant for a cloud media player. Search across the synchronized media index. Use search_media to inspect results, use collect_media when the user wants many or all matching files loaded into the app, use open_media to focus one exact item, and never invent IDs or claim files exist unless a tool returns them. If the user asks for new music, songs, or artists, you must use search_jamendo_music. If the user asks for new videos, movies, or clips, you must use search_youtube_video to find and stream real videos directly from the cloud. Be concise and practical.',
     },
   ]);
   const [isRunning, setIsRunning] = useState(false);
-  const [isSystemScanning, setIsSystemScanning] = useState(false);
-  const [systemScanMessage, setSystemScanMessage] = useState('Scan folders on this Device directly so that the agent can search and open them without browser folder imports and also AI analysis classify audios, images and smaller videos for richer search.');
   const [puterSession, setPuterSession] = useState(() => readPuterSessionSnapshot());
   const [showSideBar, setShowSideBar] = useState<boolean>(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
@@ -139,33 +137,7 @@ export const AgentPage = () => {
     await retryPuterSignIn();
   }, []);
 
-  const runBackendMediaScan = useCallback(async () => {
-    setIsSystemScanning(true);
-    try {
-      const result = await scanSystemMediaLibrary();
-      const skippedMessage = result.skippedEntries > 0
-        ? ` Skipped ${result.skippedEntries} unreadable or protected entries.`
-        : '';
-      const analysisMessage = result.analysis
-        ? result.analysis.analyzed > 0 || result.analysis.cached > 0
-          ? ` Visual analysis enriched ${result.analysis.analyzed} new files and reused ${result.analysis.cached} cached results.`
-          : result.analysis.enabled
-            ? ' Visual analysis is enabled, but no eligible image or video files were enriched in this pass.'
-            : ''
-        : '';
-      setSystemScanMessage(
-        `Indexed ${result.scannedItems} media files from ${result.scannedSources} PC folders.${skippedMessage}${analysisMessage}`,
-      );
-      await refreshBackendIndexStats();
-      return result;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to scan this computer for media.';
-      setSystemScanMessage(message);
-      throw error;
-    } finally {
-      setIsSystemScanning(false);
-    }
-  }, [refreshBackendIndexStats]);
+
 
   const addBackendDocumentsToLibrary = useCallback((
     documents: BackendMediaDocument[],
@@ -178,11 +150,9 @@ export const AgentPage = () => {
       ...images.map(item => item.id),
     ]);
 
-    const openableDocuments = uniqueDocuments.filter(document =>
-      loadedIds.has(document.id) || document.sourceMode === 'system',
-    );
+    const openableDocuments = uniqueDocuments;
     const documentsToAdd = openableDocuments.filter(document =>
-      !loadedIds.has(document.id) && document.sourceMode === 'system',
+      !loadedIds.has(document.id),
     );
 
     const audioItems: AudioItem[] = [];
@@ -190,7 +160,7 @@ export const AgentPage = () => {
     const imageItems: ImageItem[] = [];
 
     for (const document of documentsToAdd) {
-      const backendUrl = document.sourceId === 'jamendo' ? document.relativePath : getBackendMediaUrl(document.id);
+      const backendUrl = document.sourceId === 'jamendo' ? document.relativePath : document.relativePath;
 
       if (document.type === 'audio') {
         audioItems.push({
@@ -376,7 +346,7 @@ export const AgentPage = () => {
       type: 'function',
       function: {
         name: 'refresh_library',
-        description: 'Rescan already-connected local directories and refresh the local index.',
+        description: 'Rescan already-connected browser directories and refresh the local index.',
         parameters: {
           type: 'object',
           properties: {},
@@ -524,13 +494,6 @@ export const AgentPage = () => {
       }
 
       const { document } = await fetchMediaDocument(mediaId);
-      if (document.sourceMode !== 'system') {
-        return {
-          ok: false,
-          error: 'That media item is not currently loaded locally. Rescan your browser folders or scan the PC again.',
-        };
-      }
-
       const collection = addBackendDocumentsToLibrary([document], { openFirst: true });
       return {
         ...collection,
@@ -540,19 +503,17 @@ export const AgentPage = () => {
     }
 
     if (toolCall.function.name === 'refresh_library') {
-      const systemScan = await runBackendMediaScan();
       if (syncedSources.length > 0) {
         await rescanDirectorySources();
       }
       return {
         ok: true,
         syncedSources: syncedSources.length,
-        systemScan,
       };
     }
 
     return { ok: false, error: `Unknown tool: ${toolCall.function.name}` };
-  }, [addBackendDocumentsToLibrary, audios, images, localCounts, navigate, requestMediaFocus, rescanDirectorySources, runBackendMediaScan, syncedSources.length, videos]);
+  }, [addBackendDocumentsToLibrary, audios, images, localCounts, navigate, requestMediaFocus, rescanDirectorySources, syncedSources.length, videos]);
 
   const sendPromptToAgent = useCallback(async () => {
     const prompt = query.trim();
@@ -720,23 +681,7 @@ export const AgentPage = () => {
           <p className="text-xs text-white/55">{puterSession.message}</p>
         </div>
 
-        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/8 p-4 space-y-3">
-          <div className="flex items-center justify-between max-sm:flex-col max-sm:space-y-2 max-sm:items-start">
-            <div>
-              <p className="text-sm font-medium text-white">Computer Scan</p>
-              <p className="text-xs text-white/55">folders under your Windows/Linux/Mac,Mobile user profile directly, including subfolders, and can classify images, audios or smaller videos for better search when configured.</p>
-            </div>
-            <button
-              onClick={() => void runBackendMediaScan()}
-              disabled={isSystemScanning}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-60 transition-colors"
-            >
-              <FaFolderOpen className="text-sm" />
-              <span className="text-sm">{isSystemScanning ? 'Scanning Device...' : 'Scan Device'}</span>
-            </button>
-          </div>
-          <p className="text-xs text-white/55">{systemScanMessage}</p>
-        </div>
+
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
           <div className="flex items-center justify-between">

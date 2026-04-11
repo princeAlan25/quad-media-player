@@ -26,9 +26,7 @@ export async function syncMediaSource(source: { id: string; label: string; mode:
   });
 }
 
-export function getBackendMediaUrl(mediaId: string): string {
-  return `${backendBaseUrl}/api/media/file/${encodeURIComponent(mediaId)}`;
-}
+
 
 export async function deleteMediaSource(sourceId: string) {
   return requestJson<{ sourceId: string; stats: BackendMediaStats }>(`/api/media/source/${encodeURIComponent(sourceId)}`, {
@@ -63,25 +61,7 @@ export async function searchMediaLibrary(query: string, types?: MediaKind[], lim
   });
 }
 
-export async function scanSystemMediaLibrary() {
-  return requestJson<{
-    scannedSources: number;
-    scannedItems: number;
-    skippedEntries: number;
-    sources: Array<{ id: string; label: string; rootPath: string; itemCount: number }>;
-    analysis?: {
-      enabled: boolean;
-      model?: string;
-      analyzed: number;
-      cached: number;
-      skipped: number;
-      failed: number;
-    };
-    stats: BackendMediaStats;
-  }>('/api/media/system-scan', {
-    method: 'POST',
-  });
-}
+
 
 export async function fetchRagContext(query: string, types?: MediaKind[], limit = 8) {
   return requestJson<{ query: string; matches: BackendMediaMatch[]; context: string; stats: BackendMediaStats }>('/api/media/rag', {
