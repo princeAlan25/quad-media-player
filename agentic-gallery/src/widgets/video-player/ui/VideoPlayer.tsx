@@ -110,7 +110,6 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
     } else {
       video.pause();
     }
-    console.log("clicked")
   }, []);
 
   const handleSeek = useCallback((time: number) => {
@@ -222,13 +221,13 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
 
   if (!currentVideo) {
     return (
-      <div className="w-full h-full max-w-full max-h-full overflow-scroll flex flex-col items-center justify-center bg-black/40 rounded-4xl max-sm:rounded-md max-sm:*:scale-90">
+      <div className="w-full h-full max-w-full max-h-full overflow-scroll flex flex-col items-center justify-center bg-black/40 rounded-4xl max-sm:rounded-md max-sm*:scale-90">
         <div className="text-center space-y-4">
           <div className="w-24 h-24 mx-auto rounded-full bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
             <span className="text-xl font-semibold tracking-wide text-white">Upload Videos</span>
           </div>
           <h3 className="text-white text-xl font-semibold">No Video Selected</h3>
-          <p className="text-white/60">Upload one or more videos to get started</p>
+          <p className="text-white/60 ">Upload one or more videos to get started</p>
           <div className="pt-4">
             <VideoFileUpload onFilesSelected={handleFilesSelected} />
           </div>
@@ -240,7 +239,7 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-row w-full h-full bg-black rounded-md overflow-hidden group max-sm:overflow-y-scroll max-sm:rounded-md max-sm:p-0 max-sm:max-h-[96vh] max-sm:overflow-hidden max-lg:flex max-lg:flex-col max-lg:overflow-y-auto max-lg:rounded-xl max-lg:p-0 max-lg:h-auto max-lg:min-h-full max-xl:flex max-xl:flex-col max-xl:overflow-y-auto max-xl:rounded-xl max-xl:p-0 max-xl:h-auto max-xl:min-h-full"
+      className="relative flex flex-row w-full h-full bg-black rounded-md overflow-hidden group max-sm:overflow-y-scroll max-sm:rounded-md max-sm:p-0 max-sm:max-h-[96vh] max-sm:overflow-hidden max-lg:flex max-lg:flex-col max-lg:overflow-y-auto max-lg:rounded-md max-lg:p-0 max-lg:h-auto max-lg:min-h-full max-xl:flex max-xl:flex-col max-xl:overflow-y-auto max-xl:rounded-xl max-xl:p-0 max-xl:h-auto max-xl:min-h-full"
       onMouseMove={showControlsTemporarily}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
@@ -250,7 +249,7 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
         {/* Video — sticky at top on desktop */}
         <div
           key={currentVideo?.id || 'empty'}
-          className="sticky top-0 z-10 shrink-0 aspect-video bg-black rounded-md relative transition-opacity duration-300 max-sm:sticky max-sm:top-0 max-sm:z-1 max-sm:mb-2 max-lg:sticky max-lg:top-0 max-lg:h-auto max-lg:aspect-video max-lg:shrink-0 max-lg:z-20 max-lg:bg-black max-lg:mb-2 max-xl:sticky max-xl:top-0 max-xl:h-auto max-xl:aspect-video max-xl:shrink-0 max-xl:z-20 max-xl:bg-black max-xl:mb-2"
+          className="sticky top-0 z-10 shrink-0 aspect-video bg-black rounded-md transition-opacity duration-300 max-sm:sticky max-sm:top-0 max-sm:z-1 max-sm:mb-2 max-lg:sticky max-lg:top-0 max-lg:h-auto max-lg:aspect-video max-lg:shrink-0 max-lg:z-20 max-lg:bg-black max-lg:mb-2 max-xl:sticky max-xl:top-0 max-xl:h-auto max-xl:aspect-video max-xl:shrink-0 max-xl:z-20 max-xl:bg-black max-xl:mb-2"
         >
           {currentVideo?.sourceId === 'youtube' ? (
             <iframe
@@ -262,7 +261,6 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
           ) : (
             <video
               ref={videoRef}
-              controls
               src={currentVideo?.url}
               className="w-full h-full object-contain"
               onClick={handlePlayPause}
@@ -286,20 +284,23 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
         </div>
 
         {/* Now-playing title — desktop */}
-        <div className="shrink-0 px-4 pt-3 pb-1 max-xl:hidden max-lg:hidden max-sm:hidden">
-          <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest mb-0.5">Now Playing</p>
-          <p className="text-white text-sm font-semibold truncate">{currentVideo?.name ?? ''}</p>
-        </div>
+        {
+          !isFullscreen &&
+          <div className="shrink-0 px-4 pt-3 pb-1 max-xl:hidden max-lg:hidden max-sm:hidden">
+            <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest mb-0.5">Now Playing</p>
+            <p className="text-white text-sm font-semibold truncate">{currentVideo?.name ?? ''}</p>
+          </div>
+        }
 
         {/* Now-playing title — iPad only */}
-        <div className="hidden max-lg:flex max-xl:flex max-sm:hidden items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-sm shrink-0">
+        <div className="hidden max-lg:flex max-xl:flex max-sm:flex max-sm:px-0 items-center gap-2 px-4 py-2 bg-black/80 backdrop-blur-sm shrink-0">
           <span className="text-white/50 text-xs font-medium uppercase tracking-wider shrink-0">Now Playing</span>
           <span className="text-white text-sm font-semibold truncate">{currentVideo?.name ?? ''}</span>
         </div>
 
         {/* VideoPlayerControls — desktop: below buttons; iPad/mobile: hidden */}
         {currentVideo?.sourceId !== 'youtube' && (
-          <div className="mt-auto shrink-0 transition-opacity duration-300 max-sm:hidden max-lg:hidden max-xl:hidden">
+          <div className="mt-auto shrink-0 transition-opacity duration-300">
             <VideoPlayerControls
               isPlaying={isPlaying}
               isMuted={isMuted}
@@ -320,12 +321,12 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
 
       {/* ── Right column: scrollable thumbnail rail ── */}
       {videos.length > 0 && (
-        <div className="w-44 flex flex-col shrink-0 overflow-y-auto border-l border-white/10 gap-2 p-2 max-sm:relative max-sm:shadow-2xl max-sm:w-full max-sm:right-0 max-sm:p-2 max-sm:overflow-y-scroll max-lg:relative max-lg:w-full max-lg:h-auto max-lg:right-auto max-lg:top-auto max-lg:bottom-auto max-lg:grid max-lg:grid-cols-2 max-sm:grid-cols-1 max-lg:gap-3 max-lg:space-y-0 max-lg:p-3 max-lg:overflow-y-auto max-lg:max-h-[calc(100vh-56vw-2rem)] max-xl:relative max-xl:w-full max-xl:h-auto max-xl:right-auto max-xl:top-auto max-xl:bottom-auto max-xl:grid max-xl:grid-cols-2 max-xl:gap-3 max-xl:space-y-0 max-xl:p-3 max-xl:overflow-y-auto max-xl:max-h-[calc(100vh-56vw-2rem)]">
+        <div className="w-44 flex flex-col shrink-0 overflow-y-auto border-l border-white/10 gap-2 p-2 max-sm:relative max-sm:shadow-2xl max-sm:w-full max-sm:right-0 max-sm:p-2 max-sm:overflow-y-scroll max-lg:relative max-lg:w-full max-lg:h-auto max-lg:right-auto max-lg:top-auto max-lg:bottom-auto max-lg:grid max-lg:grid-cols-2 max-sm:grid-cols-1 max-lg:gap-3 max-lg:space-y-0 max-lg:p-3 max-lg:overflow-y-auto max-lg:max-h-[calc(100vh-56vw-2rem)] max-xl:relative max-xl:w-full max-xl:h-auto max-xl:right-auto max-xl:top-auto max-xl:bottom-auto max-xl:grid max-xl:grid-cols-2 max-xl:gap-3 max-xl:space-y-0 max-xl:p-3 max-xl:overflow-y-auto max-xl:max-h-[calc(100vh-56vw-2rem)] lg:max-h-[80vh]">
           {videos.map((v, idx) => (
             <button
               key={v.id}
               onClick={() => handleSelectVideo(idx)}
-              className={`relative w-full flex flex-col items-center gap-1 rounded-md overflow-hidden border transition-all max-sm:opacity-60 max-lg:opacity-85 max-xl:opacity-85 ${idx === currentIndex
+              className={`relative w-full flex flex-col items-center gap-1 rounded-md overflow-hidden border transition-all max-sm:opacity-60 max-lg:opacity-85 max-xl:opacity-85 lg:min-h-30 ${idx === currentIndex
                 ? 'border-emerald-400 bg-white/10 max-sm:opacity-80 max-sm:shadow-md max-sm:shadow-green-100 max-lg:shadow-[0_0_15px_rgba(52,211,153,0.15)] max-lg:opacity-100 max-xl:shadow-[0_0_15px_rgba(52,211,153,0.15)] max-xl:opacity-100'
                 : 'border-white/15 bg-white/5 hover:bg-white/10'
                 }`}
