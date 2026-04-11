@@ -342,11 +342,20 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
               >
                 <FaTrash className="text-[10px]" />
               </span>
-              <video
-                src={v.url}
-                className="w-full h-20 object-cover pointer-events-none max-lg:h-auto max-lg:aspect-video max-xl:h-auto max-xl:aspect-video"
-                muted
-              />
+              {v.sourceId === 'youtube' ? (
+                <img
+                  src={`https://i.ytimg.com/vi/${v.relativePath}/hqdefault.jpg`}
+                  alt={v.name}
+                  className="w-full h-20 object-cover pointer-events-none max-lg:h-auto max-lg:aspect-video max-xl:h-auto max-xl:aspect-video"
+                  loading="lazy"
+                />
+              ) : (
+                <video
+                  src={v.url}
+                  className="w-full h-20 object-cover pointer-events-none max-lg:h-auto max-lg:aspect-video max-xl:h-auto max-xl:aspect-video"
+                  muted
+                />
+              )}
               <span className={`px-2 pb-2 text-[11px] text-white/80 truncate w-full max-sm:text-left max-lg:text-sm max-lg:text-left max-lg:px-3 max-lg:pt-1 max-lg:text-white/90 max-xl:text-sm max-xl:text-left max-xl:px-3 max-xl:pt-1 max-xl:text-white/90 ${idx === currentIndex ? 'max-sm:bg-emerald-500/80 max-lg:bg-emerald-500/20 max-xl:bg-emerald-500/20' : ''}`}>{v.name}</span>
             </button>
           ))}
