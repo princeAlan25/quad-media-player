@@ -861,7 +861,7 @@ export const AgentPage = () => {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Find and collect my gospel songs, open the wedding album, or refresh the library."
-            className="flex-1 resize-none min-h-24 rounded-2xl bg-black/25 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/50 max-sm:rounded-md max-sm:min-h-full max-sm:text-xs max-sm:min-w-[80%] max-sm:bg-black invert-75"
+            className="flex-1 resize-none min-h-24 rounded-2xl bg-white border border-white/10 px-4 py-3 text-sm text-black outline-none focus:border-cyan-300/50 max-sm:rounded-md max-sm:min-h-full max-sm:text-xs max-sm:min-w-[80%]"
           />
           <button
             type="submit"
