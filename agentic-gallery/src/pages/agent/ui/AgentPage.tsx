@@ -87,11 +87,11 @@ export const AgentPage = () => {
     {
       id: 'assistant-seed',
       role: 'assistant',
-      content: 'Ask me to find media, collect many matching files into the app, open a result, or search with visual and OCR context from analyzed images and videos when available.',
+      content: "I'm your AI Agent. I can find and play any video from YouTube and play any audio from external source and manage your browser local folders and library automatically. Just tell me what you need—I'll play, show and search for you",
     },
   ]);
   const [conversation, setConversation] = useState<PuterChatMessage[]>([
-     {
+    {
       role: 'system',
       content: 'You are a media RAG assistant for a cloud media player. Search across the synchronized media index. Use search_media to inspect results, use collect_media when the user wants many or all matching files loaded into the app, use open_media to focus one exact item, and never invent IDs or claim files exist unless a tool returns them. If the user asks for new music, songs, or artists, you must use search_jamendo_music. If the user asks for new videos, movies, or clips, you must use search_youtube_video to find and stream real videos directly from the cloud. Be concise and practical.',
     },
@@ -589,9 +589,9 @@ export const AgentPage = () => {
 
         // After all tools for this step, if we found documents, show them
         if (foundDocuments.length > 0) {
-          setChatLines(prev => [...prev, { 
-            id: `media-${Date.now()}`, 
-            role: 'assistant', 
+          setChatLines(prev => [...prev, {
+            id: `media-${Date.now()}`,
+            role: 'assistant',
             content: 'I found these relevant items:',
             metadata: { documents: foundDocuments.slice(0, 6) }
           }]);
@@ -622,7 +622,7 @@ export const AgentPage = () => {
 
   const MediaResultCard = ({ doc }: { doc: BackendMediaDocument }) => {
     return (
-      <div 
+      <div
         onClick={() => {
           requestMediaFocus(doc.type, doc.id, doc.type !== 'image');
           navigate(routeForMedia(doc.type));
@@ -631,9 +631,9 @@ export const AgentPage = () => {
       >
         <div className="aspect-video relative rounded-lg overflow-hidden bg-black/40">
           <div className="absolute inset-0 flex items-center justify-center">
-            {doc.type === 'audio' ? <span className="text-2xl text-cyan-400/50">🎵</span> : 
-             doc.type === 'video' ? <span className="text-2xl text-blue-400/50">🎥</span> : 
-             <span className="text-2xl text-emerald-400/50">🖼️</span>}
+            {doc.type === 'audio' ? <span className="text-2xl text-cyan-400/50">🎵</span> :
+              doc.type === 'video' ? <span className="text-2xl text-blue-400/50">🎥</span> :
+                <span className="text-2xl text-emerald-400/50">🖼️</span>}
           </div>
           {/* Real images would go here if available, using the type icon as a premium placeholder */}
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/80 to-transparent pt-4 px-2">
@@ -660,7 +660,7 @@ export const AgentPage = () => {
       <section className={`${glassPanelClass} p-5 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-scroll max-sm:rounded-md ${showSideBar ? "max-sm:block" : "max-sm:hidden"}`}>
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">Your Agent Space</p>
-          <h1 className="text-3xl font-semibold text-white">Media Control Room</h1>
+          <h1 className="text-3xl font-semibold text-white">Media Intelligence Center</h1>
           <p className="text-sm text-white/60">
             Let the agent help or yourself scan your device media you want to play directly here without any manual search effort.
           </p>
@@ -840,13 +840,13 @@ export const AgentPage = () => {
             </div>
           ))}
           {isRunning && chatLines[chatLines.length - 1]?.role !== 'typing' && (
-             <div className="max-w-[80px] rounded-3xl px-5 py-4 bg-white/10 border border-white/10 animate-message">
-                <div className="flex gap-1 items-center h-4">
-                  <div className="typing-dot" />
-                  <div className="typing-dot" />
-                  <div className="typing-dot" />
-                </div>
-             </div>
+            <div className="max-w-[80px] rounded-3xl px-5 py-4 bg-white/10 border border-white/10 animate-message">
+              <div className="flex gap-1 items-center h-4">
+                <div className="typing-dot" />
+                <div className="typing-dot" />
+                <div className="typing-dot" />
+              </div>
+            </div>
           )}
         </div>
 
