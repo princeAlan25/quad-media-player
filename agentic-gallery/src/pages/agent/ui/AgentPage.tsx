@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowRotateRight, FaFolderOpen, FaLink, FaTrash } from 'react-icons/fa6';
+import { FaArrowRotateRight, FaFolderOpen, FaTrash } from 'react-icons/fa6';
 import type { AudioItem } from '@/shared/types/AudioItem';
 import type { ImageItem } from '@/shared/types/ImageItem';
 import type { VideoItem } from '@/shared/types/VideoItem';
-import { fetchBackendHealth, fetchMediaDocument, fetchMediaDocuments, fetchMediaLibrary, fetchRagContext, searchMediaLibrary, searchJamendoMusic, searchYouTubeVideo } from '@/shared/api/backendApi';
-import { ensurePuterSignIn, getPuterModel, readPuterSessionSnapshot, refreshPuterSessionSnapshot, retryPuterSignIn, subscribeToPuterSessionUpdates } from '@/shared/lib/puterAuth';
+import { fetchBackendHealth, fetchMediaDocument, fetchMediaDocuments, fetchMediaLibrary, fetchRagContext, searchMediaLibrary, searchJamendoMusic, searchYouTubeVideo, sendAiChat } from '@/shared/api/backendApi';
 import { useMediaLibrary } from '@/entities/media';
 import type { BackendMediaDocument, BackendMediaMatch, BackendMediaStats, MediaKind } from '@/shared/types/LibraryMedia';
 import type { PuterChatMessage, PuterChatResponse, PuterToolCall, PuterToolDefinition } from '@/shared/types/puter';
@@ -18,8 +17,11 @@ type ChatRole = 'assistant' | 'user' | 'tool';
 
 interface ChatLine {
   id: string;
-  role: ChatRole;
+  role: ChatRole | 'typing';
   content: string;
+  metadata?: {
+    documents?: BackendMediaDocument[];
+  };
 }
 
 const glassPanelClass = 'rounded-3xl border border-violet-500/35 bg-white/5 backdrop-blur-xl'
@@ -85,17 +87,16 @@ export const AgentPage = () => {
     {
       id: 'assistant-seed',
       role: 'assistant',
-      content: 'Ask me to find media, collect many matching files into the app, open a result, or search with visual and OCR context from analyzed images and videos when available.',
+      content: "I'm your AI Agent. I can find and play any video from YouTube and play any audio from external source and manage your browser local folders and library automatically. Just tell me what you need—I'll play, show and search for you",
     },
   ]);
   const [conversation, setConversation] = useState<PuterChatMessage[]>([
-     {
+    {
       role: 'system',
       content: 'You are a media RAG assistant for a cloud media player. Search across the synchronized media index. Use search_media to inspect results, use collect_media when the user wants many or all matching files loaded into the app, use open_media to focus one exact item, and never invent IDs or claim files exist unless a tool returns them. If the user asks for new music, songs, or artists, you must use search_jamendo_music. If the user asks for new videos, movies, or clips, you must use search_youtube_video to find and stream real videos directly from the cloud. Be concise and practical.',
     },
   ]);
   const [isRunning, setIsRunning] = useState(false);
-  const [puterSession, setPuterSession] = useState(() => readPuterSessionSnapshot());
   const [showSideBar, setShowSideBar] = useState<boolean>(false);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -125,19 +126,7 @@ export const AgentPage = () => {
     }
 
     container.scrollTop = container.scrollHeight;
-  }, [chatLines]);
-
-  useEffect(() => subscribeToPuterSessionUpdates(setPuterSession), []);
-
-  useEffect(() => {
-    refreshPuterSessionSnapshot();
-  }, []);
-
-  const startPuterConnection = useCallback(async () => {
-    await retryPuterSignIn();
-  }, []);
-
-
+  }, [chatLines, isRunning]);
 
   const addBackendDocumentsToLibrary = useCallback((
     documents: BackendMediaDocument[],
@@ -525,30 +514,15 @@ export const AgentPage = () => {
     setIsRunning(true);
     setChatLines(prev => [...prev, { id: `user-${Date.now()}`, role: 'user', content: prompt }]);
 
-    if (!window.puter) {
-      setChatLines(prev => [...prev, {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: 'Puter.js is unavailable in this session. Reload the page with internet access to use the agent.',
-      }]);
-      setIsRunning(false);
-      return;
-    }
-
     let workingConversation: PuterChatMessage[] = [
       ...conversation,
       { role: 'user', content: prompt },
     ];
 
     try {
-      await ensurePuterSignIn();
-
       for (let step = 0; step < 10; step += 1) {
-        const response = await window.puter.ai.chat(workingConversation, {
-          model: getPuterModel(),
+        const response = await sendAiChat(workingConversation, {
           tools: toolDefinitions,
-          reasoning_effort: 'low',
-          text: 'low',
         });
 
         const assistantMessage = extractAssistantMessage(response);
@@ -564,23 +538,33 @@ export const AgentPage = () => {
         }
 
         workingConversation = [...workingConversation, assistantMessage];
+        let foundDocuments: BackendMediaDocument[] = [];
 
         for (const toolCall of toolCalls) {
           const result = await executeToolCall(toolCall);
           let summary = `Ran ${toolCall.function.name}.`;
 
+          // Track documents to display them in the chat
           if (toolCall.function.name === 'search_media') {
-            summary = `Ran ${toolCall.function.name} and found ${((result as { matches?: BackendMediaMatch[] }).matches ?? []).length} matches.`;
-          } else if (toolCall.function.name === 'search_jamendo_music') {
-            summary = `Searched Jamendo music and loaded ${((result as any).added ?? 0)} new tracks into the app.`;
-          } else if (toolCall.function.name === 'search_youtube_video') {
-            summary = `Searched YouTube videos and loaded ${((result as any).added ?? 0)} new videos into the app.`;
+            const searchResult = result as { matches?: BackendMediaMatch[] };
+            const matchedIds = (searchResult.matches ?? []).map(m => m.id);
+            const { documents } = await fetchMediaDocuments(matchedIds);
+            foundDocuments = [...foundDocuments, ...documents];
+            summary = `Found ${documents.length} matches in the library.`;
+          } else if (toolCall.function.name === 'search_jamendo_music' || toolCall.function.name === 'search_youtube_video') {
+            const mediaResult = result as { documents?: BackendMediaDocument[] };
+            foundDocuments = [...foundDocuments, ...(mediaResult.documents ?? [])];
+            summary = `Found ${mediaResult.documents?.length ?? 0} new cloud sources.`;
           } else if (toolCall.function.name === 'collect_media') {
             const collectResult = result as {
               matched?: number;
               added?: number;
+              documents?: BackendMediaDocument[];
               opened?: { title?: string } | null;
             };
+            if (collectResult.documents) {
+              foundDocuments = [...foundDocuments, ...collectResult.documents];
+            }
 
             if ((collectResult.matched ?? 0) === 0) {
               summary = 'No matching media files were collected.';
@@ -601,6 +585,16 @@ export const AgentPage = () => {
               content: JSON.stringify(result),
             },
           ];
+        }
+
+        // After all tools for this step, if we found documents, show them
+        if (foundDocuments.length > 0) {
+          setChatLines(prev => [...prev, {
+            id: `media-${Date.now()}`,
+            role: 'assistant',
+            content: 'I found these relevant items:',
+            metadata: { documents: foundDocuments.slice(0, 6) }
+          }]);
         }
       }
 
@@ -624,7 +618,39 @@ export const AgentPage = () => {
 
   const sidebarTogglingHandler = useCallback(() => {
     setShowSideBar(prev => !prev);
-  }, [showSideBar])
+  }, []);
+
+  const MediaResultCard = ({ doc }: { doc: BackendMediaDocument }) => {
+    return (
+      <div
+        onClick={() => {
+          requestMediaFocus(doc.type, doc.id, doc.type !== 'image');
+          navigate(routeForMedia(doc.type));
+        }}
+        className="group relative flex flex-col gap-2 p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-400/30 transition-all cursor-pointer overflow-hidden"
+      >
+        <div className="aspect-video relative rounded-lg overflow-hidden bg-black/40">
+          <div className="absolute inset-0 flex items-center justify-center">
+            {doc.type === 'audio' ? <span className="text-2xl text-cyan-400/50">🎵</span> :
+              doc.type === 'video' ? <span className="text-2xl text-blue-400/50">🎥</span> :
+                <span className="text-2xl text-emerald-400/50">🖼️</span>}
+          </div>
+          {/* Real images would go here if available, using the type icon as a premium placeholder */}
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-black/80 to-transparent pt-4 px-2">
+            <p className="text-[10px] text-white/50 uppercase tracking-wider truncate">{doc.sourceLabel}</p>
+          </div>
+        </div>
+        <div className="px-1">
+          <p className="text-xs font-medium text-white truncate group-hover:text-cyan-300 transition-colors">
+            {doc.title || doc.fileName}
+          </p>
+          <p className="text-[10px] text-white/40 truncate">
+            {doc.artist || (doc.size ? `${(doc.size / (1024 * 1024)).toFixed(1)} MB` : 'Cloud Stream')}
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="w-full min-h-[calc(100vh-6rem)] grid grid-cols-[minmax(320px,380px)_1fr] gap-6 max-sm:max-w-full max-sm:flex justify-center items-center max-sm:rounded-md max-sm:h-[96vh] max-sm:overflow-hidden max-sm:*:border-0">
@@ -634,7 +660,7 @@ export const AgentPage = () => {
       <section className={`${glassPanelClass} p-5 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-scroll max-sm:rounded-md ${showSideBar ? "max-sm:block" : "max-sm:hidden"}`}>
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">Your Agent Space</p>
-          <h1 className="text-3xl font-semibold text-white">Media Control Room</h1>
+          <h1 className="text-3xl font-semibold text-white">Media Intelligence Center</h1>
           <p className="text-sm text-white/60">
             Let the agent help or yourself scan your device media you want to play directly here without any manual search effort.
           </p>
@@ -654,34 +680,6 @@ export const AgentPage = () => {
             <p className="text-2xl font-semibold">{localCounts.image}</p>
           </div>
         </div>
-
-        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/8 p-4 space-y-3 hidden">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-white">Puter Agent</p>
-              <p className="text-xs text-white/55">Puter sign-in is checked on load and requested only when needed from a user action.</p>
-            </div>
-            <button
-              onClick={() => void startPuterConnection()}
-              disabled={puterSession.phase === 'connecting' || puterSession.phase === 'ready'}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-cyan-400/20 hover:bg-cyan-400/30 disabled:opacity-60 transition-colors"
-            >
-              <FaLink className="text-sm" />
-              <span className="text-sm">
-                {puterSession.phase === 'connecting'
-                  ? 'Connecting...'
-                  : puterSession.phase === 'ready'
-                    ? 'Connected'
-                    : puterSession.phase === 'error'
-                      ? 'Retry Login'
-                      : 'Connect Puter'}
-              </span>
-            </button>
-          </div>
-          <p className="text-xs text-white/55">{puterSession.message}</p>
-        </div>
-
-
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
           <div className="flex items-center justify-between">
@@ -799,7 +797,7 @@ export const AgentPage = () => {
         </div>
       </section>
 
-      <section ref={chatScrollRef} className={`${glassPanelClass} p-5 flex flex-col h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden max-sm:max-h-[84vh] max-sm:p-0 max-sm:-mt-4 max-sm:rounded-md max-sm:overflow-y-scroll ${showSideBar ? "max-sm:hidden" : "max-sm:block"}`}>
+      <section className={`${glassPanelClass} p-5 flex flex-col h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-hidden max-sm:max-h-[84vh] max-sm:p-0 max-sm:-mt-4 max-sm:rounded-md max-sm:overflow-y-scroll ${showSideBar ? "max-sm:hidden" : "max-sm:block"}`}>
         <div className="mb-4 max-sm:m-2">
           <p className="text-xs uppercase tracking-[0.35em] text-white/40 max-sm:hidden">Conversation</p>
           <h2 className="text-2xl font-semibold text-white mt-2 max-sm:mt-0 max-sm:text-sm">Ask the agent</h2>
@@ -812,16 +810,44 @@ export const AgentPage = () => {
           {chatLines.map(line => (
             <div
               key={line.id}
-              className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 max-sm:text-xs max-sm:leading-4 max-sm:rounded-md max-sm:p-2 max-sm:border-none ${line.role === 'user'
-                ? 'ml-auto bg-cyan-400/20 border border-cyan-300/20 text-white max-sm:min-w-[84%]'
+              className={`max-w-[82%] rounded-3xl px-5 py-4 text-sm leading-6 max-sm:text-xs max-sm:leading-4 max-sm:rounded-xl max-sm:p-3 animate-message ${line.role === 'user'
+                ? 'ml-auto bg-cyan-400/20 border border-cyan-400/30 text-white'
                 : line.role === 'tool'
-                  ? 'bg-white/6 border border-white/8 text-white/70 max-sm:max-w-full'
-                  : 'bg-white/10 border border-white/10 text-white max-sm:max-w-full'
+                  ? 'bg-white/5 border border-white/5 text-white/50 text-[11px] italic'
+                  : line.role === 'typing'
+                    ? 'bg-white/10 border border-white/10 text-white min-w-[60px]'
+                    : 'bg-white/10 border border-white/10 text-white'
                 } wrap-break-word whitespace-pre-wrap`}
             >
-              {line.content}
+              {line.role === 'typing' ? (
+                <div className="flex gap-1 items-center h-4">
+                  <div className="typing-dot" />
+                  <div className="typing-dot" />
+                  <div className="typing-dot" />
+                </div>
+              ) : (
+                <>
+                  {line.content}
+                  {line.metadata?.documents && line.metadata.documents.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      {line.metadata.documents.map(doc => (
+                        <MediaResultCard key={doc.id} doc={doc} />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           ))}
+          {isRunning && chatLines[chatLines.length - 1]?.role !== 'typing' && (
+            <div className="max-w-[80px] rounded-3xl px-5 py-4 bg-white/10 border border-white/10 animate-message">
+              <div className="flex gap-1 items-center h-4">
+                <div className="typing-dot" />
+                <div className="typing-dot" />
+                <div className="typing-dot" />
+              </div>
+            </div>
+          )}
         </div>
 
         <form
@@ -835,7 +861,7 @@ export const AgentPage = () => {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Find and collect my gospel songs, open the wedding album, or refresh the library."
-            className="flex-1 resize-none min-h-24 rounded-2xl bg-black/25 border border-white/10 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/50 max-sm:rounded-md max-sm:min-h-full max-sm:text-xs max-sm:min-w-[80%] max-sm:bg-black invert-75"
+            className="flex-1 resize-none min-h-24 rounded-2xl bg-white border border-white/10 px-4 py-3 text-sm text-black outline-none focus:border-cyan-300/50 max-sm:rounded-md max-sm:min-h-full max-sm:text-xs max-sm:min-w-[80%]"
           />
           <button
             type="submit"

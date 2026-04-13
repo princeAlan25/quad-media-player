@@ -1,4 +1,5 @@
 import type { BackendMediaDocument, BackendMediaMatch, BackendMediaStats, MediaKind } from '@/shared/types/LibraryMedia';
+import type { PuterChatMessage, PuterChatResponse } from '@/shared/types/puter';
 
 const backendBaseUrl = (import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/$/, '') ?? 'http://localhost:4000';
 
@@ -17,6 +18,13 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return response.json() as Promise<T>;
+}
+
+export async function sendAiChat(messages: PuterChatMessage[], options?: any) {
+  return requestJson<PuterChatResponse>('/api/ai/chat', {
+    method: 'POST',
+    body: JSON.stringify({ messages, options }),
+  });
 }
 
 export async function syncMediaSource(source: { id: string; label: string; mode: 'directory' | 'session' }, documents: BackendMediaDocument[]) {
