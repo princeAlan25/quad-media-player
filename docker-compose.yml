@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "7000:7000"
+    env_file:
+      - ./backend/.env.example
+    environment:
+      - PORT=7000
+      - FRONTEND_ORIGIN=http://localhost:3000
+      - HOST_USER_PROFILE=${USERPROFILE:-${HOME}}
+    volumes:
+      - backend_data:/app/data
+      - ${USERPROFILE:-${HOME}}:/host-user
+
+  frontend:
+    build:
+      context: ./agentic-gallery
+      dockerfile: Dockerfile
+      args:
+        VITE_BACKEND_URL: http://localhost:7000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  backend_data:

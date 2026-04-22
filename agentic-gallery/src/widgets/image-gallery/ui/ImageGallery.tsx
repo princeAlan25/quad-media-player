@@ -5,7 +5,7 @@ import { useMediaLibrary } from '@/entities/media';
 import type { ImageItem } from '@/shared/types/ImageItem';
 
 const ImageGalleryContent = () => {
-  const { images, addImages: addImagesToLibrary, removeImage: removeImageFromLibrary } = useMediaLibrary();
+  const { images, addImages: addImagesToLibrary, removeImage: removeImageFromLibrary, focusRequest } = useMediaLibrary();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -119,11 +119,23 @@ const ImageGalleryContent = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (focusRequest?.type !== 'image') {
+      return;
+    }
+
+    const requestedIndex = images.findIndex(image => image.id === focusRequest.id);
+    if (requestedIndex >= 0) {
+      setCurrentIndex(requestedIndex);
+      setShowControls(true);
+    }
+  }, [focusRequest, images]);
+
   if (images.length === 0) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-black/40 rounded-4xl">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-black/40 rounded-4xl max-sm:rounded-md max-sm:*:scale-90">
         <div className="text-center space-y-4">
-          <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
+          <div className="w-24 h-24 mx-auto rounded-full bg-linear-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
             <span className="text-xl font-semibold text-white">Gallery Ready</span>
           </div>
           <h3 className="text-white text-xl font-semibold">No Images Selected</h3>
@@ -141,22 +153,22 @@ const ImageGalleryContent = () => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full bg-black rounded-4xl overflow-hidden"
+      className="relative w-full h-full bg-black rounded-4xl overflow-hidden max-sm:p-2 max-sm:rounded-md max-sm:min-h-[96vh]"
       onMouseMove={showControlsTemporarily}
       onMouseLeave={() => setShowControls(false)}
     >
-      <div className="w-full h-full flex items-center justify-center p-8">
+      <div className="w-full h-full flex items-center justify-center p-8 max-sm:w-full max-sm:rounded-md max-sm:p-0">
         <img
           src={currentImage.url}
           alt={currentImage.name}
-          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl max-sm:rounded-md"
         />
       </div>
 
       {/* Navigation Arrows */}
       <button
         onClick={goToPrevious}
-        className={`absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white transition-all duration-300 ${
+        className={`absolute invert-25 left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white transition-all duration-300 ${
           showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         aria-label="Previous image"
@@ -166,7 +178,7 @@ const ImageGalleryContent = () => {
 
       <button
         onClick={goToNext}
-        className={`absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white transition-all duration-300 ${
+        className={`absolute invert-25 right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white transition-all duration-300 ${
           showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         aria-label="Next image"
@@ -175,17 +187,17 @@ const ImageGalleryContent = () => {
       </button>
 
       {/* Bottom Controls */}
-      <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 pt-12 transition-opacity duration-300 ${
+      <div className={`absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 via-black/50 to-transparent p-4 pt-12 max-sm:pt-0 transition-opacity duration-300 ${
         showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}>
-        <div className="text-center mb-4">
+        <div className="text-center mb-4 max-sm:p-2 max-sm:mb-0">
           <span className="text-white/80 text-sm">
             {currentIndex + 1} / {images.length}
           </span>
-          <p className="text-white text-sm truncate max-w-md mx-auto">{currentImage.name}</p>
+          <p className="text-white text-sm truncate max-w-md mx-auto max-sm:mb-20">{currentImage.name}</p>
         </div>
 
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 max-sm:mb-6 max-sm:*:scale-80 max-sm:[&>button]:h-10 max-sm:items-center max-sm:gap-2 max-sm:rounded-md">
           <button
             onClick={toggleSlideshow}
             className="p-3 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
@@ -202,7 +214,7 @@ const ImageGalleryContent = () => {
           </button>
           <button
             onClick={toggleFullscreen}
-            className="p-3 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+            className="p-3 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors max-sm:hidden"
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           >
             {isFullscreen ? <FaCompress /> : <FaExpand />}
@@ -211,7 +223,7 @@ const ImageGalleryContent = () => {
         </div>
       </div>
 
-      <div className={`absolute bottom-24 left-0 right-0 flex justify-center gap-2 px-4 transition-opacity duration-300 ${
+      <div className={`absolute bottom-24 max-sm:bottom-24 left-0 right-0 flex justify-center gap-2 px-4 transition-opacity duration-300 ${
         showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}>
         {images.slice(Math.max(0, currentIndex - 2), currentIndex + 3).map((img, idx) => {

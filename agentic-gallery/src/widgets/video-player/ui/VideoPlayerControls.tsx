@@ -1,8 +1,8 @@
 import { memo, useCallback } from 'react';
-import { 
-  FaPlay, 
-  FaPause, 
-  FaExpand, 
+import {
+  FaPlay,
+  FaPause,
+  FaExpand,
   FaCompress,
   FaBackward,
   FaForward
@@ -49,14 +49,14 @@ export const VideoPlayerControls = memo(function VideoPlayerControls({
   }, [onVolumeChange]);
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 pt-12">
-      {/* Progress Bar */}
-      <div 
-        className="w-full h-1.5 bg-white/20 rounded-full cursor-pointer mb-4 group"
+    <div className="w-full bg-black/60 backdrop-blur-sm px-4 pb-3 pt-2 flex flex-col gap-2 max-sm:p-0 max-sm:gap-1">
+      {/* Progress Bar — sits right above the buttons */}
+      <div
+        className="w-full h-1.5 bg-white/20 rounded-full cursor-pointer group"
         onClick={handleProgressClick}
       >
-        <div 
-          className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full relative"
+        <div
+          className="h-full bg-linear-to-r from-green-400 to-emerald-500 rounded-full relative"
           style={{ width: `${progress}%` }}
         >
           <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -74,15 +74,15 @@ export const VideoPlayerControls = memo(function VideoPlayerControls({
           >
             <FaBackward />
           </button>
-          
+
           <button
             onClick={onPlayPause}
-            className="w-12 h-12 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white"
+            className="w-12 h-12 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors text-white max-sm:scale-90"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? <FaPause /> : <FaPlay className="ml-1" />}
           </button>
-          
+
           <button
             onClick={() => onSkip(10)}
             className="text-white/80 hover:text-white transition-colors p-2"
@@ -99,11 +99,11 @@ export const VideoPlayerControls = memo(function VideoPlayerControls({
             >
               {isMuted || volume === 0 ? <IoVolumeMute /> : <IoVolumeHigh />}
             </button>
-            <div 
+            <div
               className="w-20 h-1.5 bg-white/20 rounded-full cursor-pointer overflow-hidden"
               onClick={handleVolumeClick}
             >
-              <div 
+              <div
                 className="h-full bg-white rounded-full"
                 style={{ width: `${isMuted ? 0 : volume * 100}%` }}
               />
@@ -119,7 +119,7 @@ export const VideoPlayerControls = memo(function VideoPlayerControls({
         {/* Right Controls */}
         <button
           onClick={onFullscreenToggle}
-          className="text-white/80 hover:text-white transition-colors p-2"
+          className="text-white/80 hover:text-white transition-colors p-2 max-sm:hidden md:hidden"
           title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
         >
           {isFullscreen ? <FaCompress /> : <FaExpand />}
