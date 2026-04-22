@@ -13,6 +13,7 @@ export const Sidebar = () => {
     <div className={sidebarPanelClass}>
       <nav className="w-50 grid grid-cols-1 gap-4 text-sm font-semibold">
         <NavLink to="/" className={getNavLinkClass}>Audio</NavLink>
+        <NavLink to="/video" className={getNavLinkClass}>Video</NavLink>
         <NavLink to="/image" className={getNavLinkClass}>Images</NavLink>
       </nav>
     </div>

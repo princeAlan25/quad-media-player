@@ -12,7 +12,7 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
     addAudios: addAudiosToLibrary,
     removeAudio: removeAudioFromLibrary,
   } = useMediaLibrary();
-  
+
   const [currentIndex, setCurrentIndexState] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -23,8 +23,8 @@ export const useAudioPlayer = (): UseAudioPlayerReturn => {
   const [shuffle, setShuffle] = useState<boolean>(false);
 
   // Computed values
-  const currentAudio = useMemo(() => 
-    audios[currentIndex] || null, 
+  const currentAudio = useMemo(() =>
+    audios[currentIndex] || null,
     [audios, currentIndex]
   );
 

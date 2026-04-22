@@ -24,7 +24,7 @@ export async function llmClientAgent(req: Request, res: Response, functionalTool
     try {
         //send request to the LLM
         const response = await openRouter.chat.send({
-            model: "meta-llama/llama-3.1-70b-instruct:floor", //model version
+            model: "google/gemma-4-26b-a4b-it:free", //model version
             messages: llmGuidanceMessage,
             tools: functionalToolsDescriptions
         });
@@ -58,7 +58,7 @@ export async function llmClientAgent(req: Request, res: Response, functionalTool
 
         //prepare LLM response back to the user
         const llmResponse = await openRouter.chat.send({
-            model: "meta-llama/llama-3.1-70b-instruct:floor",
+            model: "google/gemma-4-26b-a4b-it:free",
             messages: llmGuidanceMessage,
             tools: [],
             toolChoice: "none",
@@ -69,6 +69,7 @@ export async function llmClientAgent(req: Request, res: Response, functionalTool
         res.json(audioItem);
 
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Failed to get a response from the AI model' });
     }
-}
+}

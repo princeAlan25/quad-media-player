@@ -9,12 +9,12 @@ import { Message } from "@openrouter/sdk/esm/models";
 
 
 const app = express();
-const PORT = (process.env.PORT as unknown) as number;
+const PORT = parseInt(process.env.PORT || "7000");
 app.use(express.json());
 
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: ["http://localhost:3000", "http://localhost:5173"],
         methods: ["GET", "POST", "PUT", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization"]
     })
@@ -96,8 +96,8 @@ const systemPrompts: Message[] = [
     {
         role: "system",
         content: `
-You are an AI audio assistant. 
-Your job is to control the user's audio player using the provided tools: 
+You are an AI audio assistant.
+Your job is to control the user's audio player using the provided tools:
 provide_audio.
 
 Rules:
@@ -119,15 +119,16 @@ app.post('/api/audio', async (req, res) => {
 });
 
 app.post('/api/audios', async (req, res) => {
+    res.json(audios);
 })
 
 //handling non human intervention error happen in the middleware
 function middleWareErrorHandler(error: Error, req: Request, res: Response, next: NextFunction) {
-    error.message = res.statusMessage;
-    return error;
+    console.error(error);
+    res.status(500).json({ error: error.message || 'Internal Server Error' });
 }
 app.use(middleWareErrorHandler);
 
 
 //turn on server
-app.listen(PORT, () => console.log(`Todo app Server is running on http://localhost:${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Backend Server is running on http://0.0.0.0:${PORT}`));
