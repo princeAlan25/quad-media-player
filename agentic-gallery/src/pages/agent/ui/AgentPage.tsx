@@ -24,7 +24,7 @@ interface ChatLine {
   };
 }
 
-const glassPanelClass = 'rounded-3xl border border-violet-500/35 bg-white/5 backdrop-blur-xl'
+const glassPanelClass = 'agent-light-panel rounded-3xl border backdrop-blur-xl'
 
 function routeForMedia(type: MediaKind): string {
   if (type === 'audio') return '/';
@@ -654,8 +654,8 @@ export const AgentPage = () => {
 
   return (
     <div className="w-full min-h-[calc(100vh-6rem)] grid grid-cols-[minmax(320px,380px)_1fr] gap-6 max-sm:max-w-full max-sm:flex justify-center items-center max-sm:rounded-md max-sm:h-[96vh] max-sm:overflow-hidden max-sm:*:border-0">
-      <button type="button" className='hidden absolute invert-75 bg-black/20 top-0 left-0 my-2 mx-2 p-2 overflow-hidden rounded-md max-sm:block' onClick={sidebarTogglingHandler}>
-        {!showSideBar ? <RiMenuFill className='invert-100' /> : <CgCloseR className='invert-100' />}
+      <button type="button" className='agent-mono-button hidden absolute top-0 left-0 my-2 mx-2 p-2 overflow-hidden rounded-md max-sm:block' onClick={sidebarTogglingHandler}>
+        {!showSideBar ? <RiMenuFill /> : <CgCloseR />}
       </button>
       <section className={`${glassPanelClass} p-5 space-y-5 max-h-[calc(100vh-6rem)] overflow-y-scroll max-sm:rounded-md ${showSideBar ? "max-sm:block" : "max-sm:hidden"}`}>
         <div className="space-y-2">
@@ -699,7 +699,7 @@ export const AgentPage = () => {
                     }
                   })();
                 }}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 transition-colors"
+                className="agent-mono-button inline-flex items-center gap-2 px-3 py-2 rounded-xl transition-colors"
               >
                 <FaArrowRotateRight className="text-sm" />
                 <span className="text-sm">Rescan</span>
@@ -716,7 +716,7 @@ export const AgentPage = () => {
                   })();
                 }}
                 disabled={!supportsDirectorySync}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 disabled:opacity-50 transition-colors"
+                className="agent-mono-button inline-flex items-center gap-2 px-3 py-2 rounded-xl disabled:opacity-60 transition-colors"
               >
                 <FaFolderOpen className="text-sm" />
                 <span className="text-sm">Add Common</span>
@@ -733,7 +733,7 @@ export const AgentPage = () => {
                   })();
                 }}
                 disabled={!supportsDirectorySync}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-50 transition-colors"
+                className="agent-mono-button inline-flex items-center gap-2 px-3 py-2 rounded-xl disabled:opacity-60 transition-colors"
               >
                 <FaFolderOpen className="text-sm" />
                 <span className="text-sm">Add Custom</span>
@@ -866,7 +866,7 @@ export const AgentPage = () => {
           <button
             type="submit"
             disabled={isRunning || !query.trim()}
-            className="px-5 rounded-2xl bg-linear-to-br from-cyan-400 to-blue-500 text-slate-950 font-semibold disabled:opacity-50 max-sm:scale-80 max-sm:rounded-xlg"
+            className="agent-mono-submit px-5 rounded-2xl font-semibold disabled:opacity-60 max-sm:scale-80 max-sm:rounded-xlg"
           >
             {isRunning ? <VscLoading className='animate-spin' /> : <BiSolidSend className='m-auto' />}
           </button>

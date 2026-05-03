@@ -35,10 +35,10 @@ export const ImageFileUpload = memo(function ImageFileUpload({ onFilesSelected }
       />
       <button
         onClick={handleClick}
-        className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-pink-500/30 active:scale-95"
+        className="neo-upload-button flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 active:scale-95 max-sm:px-3"
       >
         <FaCloudUploadAlt className="text-lg" />
-        <span className="text-sm font-medium">Upload Images</span>
+        <span className="text-sm font-medium max-sm:hidden">Upload Images</span>
       </button>
     </div>
   );

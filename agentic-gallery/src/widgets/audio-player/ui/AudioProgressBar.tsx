@@ -25,17 +25,17 @@ export const AudioProgressBar = memo(function AudioProgressBar({ currentTime, du
   return (
     <div className="w-full flex flex-col gap-1">
       <div 
-        className="w-full h-2 bg-white/20 rounded-full cursor-pointer relative overflow-hidden group"
+        className="neo-progress-track w-full h-2 rounded-full cursor-pointer relative overflow-visible group"
         onClick={handleClick}
       >
         <div 
-          className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-100 relative"
+          className="neo-progress-fill h-full rounded-full transition-all duration-100 relative"
           style={{ width: `${progress}%` }}
         >
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="neo-progress-knob absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full transition-opacity" />
         </div>
       </div>
-      <div className="flex justify-between text-xs text-white/70 font-medium">
+      <div className="neo-time-row flex justify-between text-xs font-medium">
         <span>{formatTime(currentTime)}</span>
         <span>{formatTime(duration)}</span>
       </div>

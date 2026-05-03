@@ -133,13 +133,13 @@ const ImageGalleryContent = () => {
 
   if (images.length === 0) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-black/40 rounded-4xl max-sm:rounded-md max-sm:*:scale-90">
+      <div className="neo-playlist-panel w-full h-full flex flex-col items-center justify-center rounded-4xl max-sm:rounded-md max-sm:*:scale-90">
         <div className="text-center space-y-4">
-          <div className="w-24 h-24 mx-auto rounded-full bg-linear-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
-            <span className="text-xl font-semibold text-white">Gallery Ready</span>
+          <div className="neo-main-control w-24 h-24 mx-auto rounded-full flex items-center justify-center">
+            <span className="text-xl font-semibold text-[#7d126f]">Gallery Ready</span>
           </div>
-          <h3 className="text-white text-xl font-semibold">No Images Selected</h3>
-          <p className="text-white/60">Upload images to create your gallery</p>
+          <h3 className="text-[#3f4b5f] text-xl font-semibold">No Images Selected</h3>
+          <p className="text-[#6f7b90]">Upload images to create your gallery</p>
           <div className="pt-4">
             <ImageFileUpload onFilesSelected={handleFilesSelected} />
           </div>

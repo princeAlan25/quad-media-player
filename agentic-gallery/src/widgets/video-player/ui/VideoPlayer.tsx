@@ -221,13 +221,13 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
 
   if (!currentVideo) {
     return (
-      <div className="w-full h-full max-w-full max-h-full overflow-scroll flex flex-col items-center justify-center bg-black/40 rounded-4xl max-sm:rounded-md max-sm*:scale-90">
+      <div className="neo-playlist-panel w-full h-full max-w-full max-h-full overflow-scroll flex flex-col items-center justify-center rounded-4xl max-sm:rounded-md max-sm*:scale-90">
         <div className="text-center space-y-4">
-          <div className="w-24 h-24 mx-auto rounded-full bg-linear-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
-            <span className="text-xl font-semibold tracking-wide text-white">Upload Videos</span>
+          <div className="neo-main-control w-24 h-24 mx-auto rounded-full flex items-center justify-center">
+            <span className="text-xl font-semibold tracking-wide text-[#7d126f]">Upload Videos</span>
           </div>
-          <h3 className="text-white text-xl font-semibold">No Video Selected</h3>
-          <p className="text-white/60 ">Upload one or more videos to get started</p>
+          <h3 className="text-[#3f4b5f] text-xl font-semibold">No Video Selected</h3>
+          <p className="text-[#6f7b90] ">Upload one or more videos to get started</p>
           <div className="pt-4">
             <VideoFileUpload onFilesSelected={handleFilesSelected} />
           </div>

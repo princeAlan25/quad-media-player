@@ -1,8 +1,369 @@
 @import "tailwindcss";
 
+:root {
+  color-scheme: light;
+  --qm-bg: #dce8f7;
+  --qm-bg-soft: #e8f0fb;
+  --qm-surface: #e4edf8;
+  --qm-surface-strong: #f2f6fc;
+  --qm-panel: rgba(226, 236, 248, 0.72);
+  --qm-panel-strong: rgba(239, 245, 252, 0.78);
+  --qm-text: #4f5c70;
+  --qm-heading: #3f4b5f;
+  --qm-muted: #6f7b90;
+  --qm-line: rgba(255, 255, 255, 0.7);
+  --qm-accent: #7d126f;
+  --qm-accent-2: #b43294;
+  --qm-accent-soft: rgba(125, 18, 111, 0.16);
+  --qm-shadow-dark: rgba(146, 168, 198, 0.54);
+  --qm-shadow-light: rgba(255, 255, 255, 0.92);
+}
 
 :root ::-webkit-scrollbar {
   display: none;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: var(--qm-bg);
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-neumorph-root {
+  background:
+    linear-gradient(90deg, rgba(188, 207, 232, 0.32) 0 1px, transparent 1px 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(221, 233, 248, 0.88)),
+    var(--qm-bg);
+  background-size: 88px 100%, 100% 100%, 100% 100%;
+}
+
+.app-neumorph-root::before,
+.app-neumorph-root::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  background: rgba(190, 209, 234, 0.42);
+  box-shadow: inset 12px 12px 30px rgba(160, 183, 211, 0.16);
+}
+
+.app-neumorph-root::before {
+  left: -48px;
+  top: -44px;
+  width: 190px;
+  height: 150px;
+  border-radius: 0 0 54px 0;
+}
+
+.app-neumorph-root::after {
+  right: 8%;
+  top: -34px;
+  width: 120px;
+  height: 94px;
+  border-radius: 0 0 24px 24px;
+  opacity: 0.48;
+}
+
+.neo-shell-panel,
+.neo-sidebar-panel,
+.neo-playlist-panel {
+  border-color: var(--qm-line);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.42), rgba(202, 219, 239, 0.36)),
+    var(--qm-panel);
+  box-shadow:
+    18px 18px 38px var(--qm-shadow-dark),
+    -16px -16px 34px var(--qm-shadow-light),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.neo-sidebar-panel {
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.48), rgba(203, 220, 240, 0.3)),
+    rgba(225, 235, 248, 0.68);
+}
+
+.neo-nav-link {
+  color: var(--qm-text);
+  border-color: rgba(255, 255, 255, 0.62);
+  background: rgba(232, 240, 250, 0.52);
+  box-shadow:
+    7px 7px 15px rgba(151, 173, 202, 0.34),
+    -7px -7px 15px rgba(255, 255, 255, 0.78);
+}
+
+.neo-nav-link:hover {
+  color: var(--qm-accent);
+  border-color: rgba(255, 255, 255, 0.9);
+  background: rgba(242, 247, 253, 0.78);
+}
+
+.neo-nav-link.is-active {
+  color: var(--qm-accent);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.76), rgba(212, 226, 243, 0.74));
+  box-shadow:
+    inset 5px 5px 12px rgba(151, 173, 202, 0.34),
+    inset -5px -5px 12px rgba(255, 255, 255, 0.88);
+}
+
+.agent-light-panel {
+  color: var(--qm-text);
+  border-color: var(--qm-line);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.38), rgba(204, 221, 241, 0.34)),
+    rgba(226, 236, 248, 0.66);
+  box-shadow:
+    14px 14px 30px rgba(146, 168, 198, 0.42),
+    -12px -12px 28px rgba(255, 255, 255, 0.82),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.agent-light-panel .text-white {
+  color: var(--qm-heading) !important;
+}
+
+.agent-light-panel .text-white\/90,
+.agent-light-panel .text-white\/80 {
+  color: var(--qm-text) !important;
+}
+
+.agent-light-panel .text-white\/60,
+.agent-light-panel .text-white\/55,
+.agent-light-panel .text-white\/50,
+.agent-light-panel .text-white\/45,
+.agent-light-panel .text-white\/40 {
+  color: var(--qm-muted) !important;
+}
+
+.agent-light-panel .text-cyan-200\/70,
+.agent-light-panel .group-hover\:text-cyan-300:hover {
+  color: var(--qm-accent) !important;
+}
+
+.agent-mono-button {
+  color: #1f2937;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  background:
+    linear-gradient(145deg, #ffffff, #e9f0f8);
+  box-shadow:
+    7px 7px 15px rgba(146, 168, 198, 0.34),
+    -7px -7px 15px rgba(255, 255, 255, 0.84);
+}
+
+.agent-mono-button:hover {
+  color: #000000;
+  border-color: rgba(15, 23, 42, 0.28);
+  background:
+    linear-gradient(145deg, #ffffff, #f4f7fb);
+}
+
+.agent-mono-button:active {
+  box-shadow:
+    inset 5px 5px 12px rgba(146, 168, 198, 0.3),
+    inset -5px -5px 12px rgba(255, 255, 255, 0.88);
+}
+
+.agent-mono-submit {
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(145deg, #323844, #111827);
+  box-shadow:
+    8px 8px 16px rgba(146, 168, 198, 0.42),
+    -8px -8px 16px rgba(255, 255, 255, 0.82);
+}
+
+.agent-mono-submit:hover {
+  background:
+    linear-gradient(145deg, #111827, #000000);
+}
+
+.agent-mono-submit:active {
+  box-shadow:
+    inset 5px 5px 12px rgba(0, 0, 0, 0.35),
+    inset -4px -4px 10px rgba(255, 255, 255, 0.08);
+}
+
+.neo-panel-title {
+  color: var(--qm-heading);
+  letter-spacing: 0;
+}
+
+.neo-upload-button {
+  color: var(--qm-accent);
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(220, 231, 245, 0.9));
+  box-shadow:
+    8px 8px 16px rgba(148, 170, 199, 0.42),
+    -8px -8px 16px rgba(255, 255, 255, 0.82);
+}
+
+.neo-upload-button:hover,
+.neo-soft-button:hover,
+.neo-round-control:hover,
+.neo-main-control:hover,
+.neo-mode-button:hover,
+.neo-volume-button:hover {
+  transform: translateY(-1px);
+}
+
+.neo-track-row {
+  color: var(--qm-text);
+  border: 1px solid transparent;
+}
+
+.neo-track-row:hover {
+  background: rgba(255, 255, 255, 0.38);
+  box-shadow: inset 4px 4px 12px rgba(151, 173, 202, 0.18);
+}
+
+.neo-track-row.is-active {
+  border-color: rgba(255, 255, 255, 0.74);
+  background: rgba(214, 228, 245, 0.68);
+  box-shadow:
+    inset 5px 5px 14px rgba(151, 173, 202, 0.22),
+    inset -5px -5px 14px rgba(255, 255, 255, 0.78);
+}
+
+.neo-track-index,
+.neo-soft-button,
+.neo-round-control,
+.neo-main-control,
+.neo-mode-button,
+.neo-volume-button {
+  color: var(--qm-accent);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(219, 230, 244, 0.94));
+  box-shadow:
+    8px 8px 16px rgba(148, 170, 199, 0.42),
+    -8px -8px 16px rgba(255, 255, 255, 0.88);
+}
+
+.neo-track-index {
+  color: var(--qm-muted);
+}
+
+.neo-active-icon,
+.neo-track-row.is-active .neo-track-title,
+.neo-mode-button.is-active {
+  color: var(--qm-accent);
+}
+
+.neo-track-artist,
+.neo-time-row,
+.neo-now-playing p {
+  color: var(--qm-muted);
+}
+
+.neo-track-title,
+.neo-now-playing h3 {
+  color: var(--qm-heading);
+}
+
+.neo-icon-danger {
+  color: #9b4f65;
+}
+
+.neo-icon-danger:hover {
+  color: #b51d4b;
+  background: rgba(181, 29, 75, 0.1);
+}
+
+.neo-now-playing {
+  position: relative;
+}
+
+.neo-now-playing::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(200px, 42%);
+  height: 82px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 8px 8px 18px rgba(151, 173, 202, 0.14),
+    inset -8px -8px 18px rgba(255, 255, 255, 0.48);
+  opacity: 0.55;
+}
+
+.neo-now-playing > * {
+  position: relative;
+  z-index: 1;
+}
+
+.neo-progress-track {
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 4px 4px 9px rgba(151, 173, 202, 0.36),
+    inset -4px -4px 9px rgba(255, 255, 255, 0.85);
+}
+
+.neo-progress-fill {
+  background: linear-gradient(90deg, var(--qm-accent), var(--qm-accent-2));
+  box-shadow: 0 0 12px rgba(125, 18, 111, 0.18);
+}
+
+.neo-progress-knob {
+  background: var(--qm-accent);
+  border: 3px solid rgba(248, 250, 254, 0.95);
+  box-shadow:
+    4px 4px 9px rgba(148, 170, 199, 0.52),
+    -3px -3px 8px rgba(255, 255, 255, 0.82);
+  opacity: 1;
+}
+
+.neo-round-control,
+.neo-main-control {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+}
+
+.neo-main-control {
+  color: var(--qm-accent);
+  background:
+    linear-gradient(145deg, #ffffff, #dce8f6);
+  box-shadow:
+    10px 10px 18px rgba(148, 170, 199, 0.48),
+    -10px -10px 18px rgba(255, 255, 255, 0.92),
+    0 0 0 8px rgba(255, 255, 255, 0.16);
+}
+
+.neo-mode-button,
+.neo-volume-button {
+  box-shadow:
+    5px 5px 11px rgba(148, 170, 199, 0.34),
+    -5px -5px 11px rgba(255, 255, 255, 0.82);
+}
+
+.neo-mode-button:not(.is-active) {
+  color: #8c93a2;
+}
+
+.neo-volume-track {
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.neo-soft-button:active,
+.neo-round-control:active,
+.neo-main-control:active,
+.neo-mode-button:active,
+.neo-volume-button:active,
+.neo-upload-button:active {
+  box-shadow:
+    inset 5px 5px 12px rgba(148, 170, 199, 0.38),
+    inset -5px -5px 12px rgba(255, 255, 255, 0.86);
 }
 
 @keyframes messageEntrance {

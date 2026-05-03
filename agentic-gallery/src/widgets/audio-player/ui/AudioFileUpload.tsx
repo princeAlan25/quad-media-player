@@ -34,10 +34,10 @@ export const AudioFileUpload = memo(function AudioFileUpload({ onFilesSelected }
       />
       <button
         onClick={handleClick}
-        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-green-500/30 active:scale-95"
+        className="neo-upload-button flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 active:scale-95 max-sm:px-3"
       >
         <FaCloudUploadAlt className="text-lg" />
-        <span className="text-sm font-medium">Upload Music</span>
+        <span className="text-sm font-medium max-sm:hidden">Upload Music</span>
       </button>
     </div>
   );

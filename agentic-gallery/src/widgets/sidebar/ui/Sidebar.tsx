@@ -1,11 +1,11 @@
 import { NavLink } from 'react-router-dom'
 
-const sidebarPanelClass = 'w-full max-w-[240px] max-sm:max-w-full max-lg:max-w-full flex-none overflow-x-auto rounded-3xl max-sm:rounded-lg max-lg:rounded-xl border border-violet-500/35 bg-white/5 max-sm:border-none max-lg:border-none max-sm:bg-none max-lg:bg-none p-5 max-sm:p-2 max-lg:p-3 backdrop-blur-xl shadow-[0_10px_30px_rgba(34,211,238,0.25),0_0_25px_rgba(139,92,246,0.3)]'
+const sidebarPanelClass = 'neo-sidebar-panel w-full min-w-0 max-w-[240px] max-sm:max-w-full max-lg:max-w-full flex-none overflow-x-auto rounded-3xl max-sm:rounded-lg max-lg:rounded-xl border max-sm:border-none max-lg:border-none max-sm:bg-none max-lg:bg-none p-5 max-sm:p-2 max-lg:p-3 backdrop-blur-xl'
 
 const getNavLinkClass = ({ isActive }: { isActive: boolean }) => (
   isActive
-    ? 'relative max-sm:flex max-lg:flex justify-center rounded-xl max-sm:rounded-md max-lg:rounded-lg max-sm:scale-90 max-lg:scale-95 border border-violet-400/80 bg-violet-500/25 px-4 py-3 max-sm:p-2 max-lg:p-3 text-white shadow-[0_0_20px_rgba(139,92,246,0.45)] transition-all duration-200'
-    : 'relative rounded-xl max-sm:flex max-lg:flex justify-center border max-sm:rounded-md max-lg:rounded-lg max-sm:scale-80 max-lg:scale-90 border-white/10 bg-white/5 px-4 py-3 max-sm:p-2 max-lg:p-3 text-[#e5e7ff] transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400/60 hover:bg-cyan-400/10 hover:text-white hover:shadow-[0_0_18px_rgba(34,211,238,0.35)]'
+    ? 'neo-nav-link is-active relative max-sm:flex max-lg:flex justify-center rounded-xl max-sm:rounded-md max-lg:rounded-lg max-sm:scale-90 max-lg:scale-95 border px-4 py-3 max-sm:p-2 max-lg:p-3 transition-all duration-200'
+    : 'neo-nav-link relative rounded-xl max-sm:flex max-lg:flex justify-center border max-sm:rounded-md max-lg:rounded-lg max-sm:scale-80 max-lg:scale-90 px-4 py-3 max-sm:p-2 max-lg:p-3 transition-all duration-200 hover:-translate-y-0.5'
 )
 
 export const Sidebar = () => {

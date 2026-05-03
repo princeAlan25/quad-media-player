@@ -21,9 +21,9 @@ export const AudioControlButtons = memo(function AudioControlButtons({
 }: AudioControlButtonsProps) {
   const getRepeatIcon = useCallback(() => {
     if (repeatMode === 'one') {
-      return <MdRepeatOne className="text-green-400" />;
+      return <MdRepeatOne />;
     }
-    return <FaRepeat className={repeatMode !== 'none' ? "text-green-400" : "text-white"} />;
+    return <FaRepeat />;
   }, [repeatMode]);
 
   return (
@@ -32,14 +32,14 @@ export const AudioControlButtons = memo(function AudioControlButtons({
       <div className="flex justify-center gap-8 w-full">
         <button
           onClick={onRepeatToggle}
-          className="p-3 rounded-full hover:bg-white/10 transition-all duration-200 active:scale-90"
+          className={`neo-mode-button p-3 rounded-full transition-all duration-200 active:scale-90 ${repeatMode !== 'none' ? 'is-active' : ''}`}
           title={`Repeat: ${repeatMode}`}
         >
           {getRepeatIcon()}
         </button>
         <button
           onClick={onShuffleToggle}
-          className={`p-3 rounded-full hover:bg-white/10 transition-all duration-200 active:scale-90 ${shuffle ? 'text-green-400' : 'text-white'}`}
+          className={`neo-mode-button p-3 rounded-full transition-all duration-200 active:scale-90 ${shuffle ? 'is-active' : ''}`}
           title={shuffle ? 'Shuffle On' : 'Shuffle Off'}
         >
           <MdShuffle />
@@ -50,7 +50,7 @@ export const AudioControlButtons = memo(function AudioControlButtons({
       <div className="flex justify-center items-center gap-6 max-sm:*:scale-80">
         <button
           onClick={onPrevious}
-          className="p-4 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-200 active:scale-90 text-white shadow-lg"
+          className="neo-round-control p-4 rounded-full transition-all duration-200 active:scale-90"
           title="Previous"
         >
           <FaBackwardStep className="text-xl" />
@@ -58,7 +58,7 @@ export const AudioControlButtons = memo(function AudioControlButtons({
         
         <button
           onClick={onPlayPause}
-          className="p-5 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 transition-all duration-200 active:scale-95 text-white shadow-lg shadow-green-500/30"
+          className="neo-main-control p-5 rounded-full transition-all duration-200 active:scale-95"
           title={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? (
@@ -70,7 +70,7 @@ export const AudioControlButtons = memo(function AudioControlButtons({
         
         <button
           onClick={onNext}
-          className="p-4 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-200 active:scale-90 text-white shadow-lg"
+          className="neo-round-control p-4 rounded-full transition-all duration-200 active:scale-90"
           title="Next"
         >
           <FaForwardStep className="text-xl" />

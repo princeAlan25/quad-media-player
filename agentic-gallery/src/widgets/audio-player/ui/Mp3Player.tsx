@@ -93,12 +93,12 @@ const Mp3PlayerContent = ({ initialAudios }: Mp3PlayerContentProps) => {
   }, [toggleShuffle]);
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full min-w-0 h-full flex flex-col">
       {/* Hidden audio element */}
       <audio ref={audioRef} preload="metadata" />
 
       {/* Playlist area */}
-      <div className="w-full h-[45%] p-2 bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-4xl shadow mb-4">
+      <div className="neo-playlist-panel w-full min-w-0 h-[45%] p-2 rounded-4xl mb-4">
         <PlaylistPanel
           audios={playlist}
           currentAudioId={currentAudio?.id}
