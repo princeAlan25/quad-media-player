@@ -4,7 +4,6 @@ import type { VideoItem } from '@/shared/types/VideoItem';
 import type { ImageItem } from '@/shared/types/ImageItem';
 import type { MediaLibraryContextValue } from '@/shared/types/MediaLibraryContext';
 import type { MediaFocusRequest, MediaKind, MediaSource, MediaSyncState } from '@/shared/types/LibraryMedia';
-import AudiosMocks from '@/shared/assets/AudioStorage.json';
 import { deleteMediaSource, syncMediaSource } from '@/shared/api/backendApi';
 import {
   COMMON_DIRECTORY_SOURCES,
@@ -19,20 +18,6 @@ import {
 } from '@/shared/lib/mediaSync';
 import { MediaLibraryContext } from './MediaLibraryContext';
 
-const createSeedAudios = (): AudioItem[] =>
-  (AudiosMocks as Array<{ id: number; title: string; artist: string; url: string }>).map((audio) => ({
-    ...audio,
-    id: `seed-${audio.id}`,
-    sourceId: 'seed-library',
-    sourceLabel: 'Starter Library',
-    relativePath: audio.title,
-    mimeType: 'audio/mpeg',
-    keywords: [audio.title.toLowerCase(), audio.artist.toLowerCase()],
-    origin: 'seed',
-  }));
-
-const seededAudios = createSeedAudios();
-
 const baseSyncState: MediaSyncState = {
   phase: 'idle',
   message: 'Choose folders to build your local index.',
@@ -41,8 +26,7 @@ const baseSyncState: MediaSyncState = {
 };
 
 function normalizeAudioLibrary(items: AudioItem[]): AudioItem[] {
-  const uploadedAudios = items.filter(item => item.origin !== 'seed');
-  return uploadedAudios.length > 0 ? uploadedAudios : seededAudios;
+  return items;
 }
 
 function mergeUniqueItems<T extends { id: string }>(existingItems: T[], incomingItems: T[]): T[] {
@@ -80,7 +64,7 @@ interface MediaLibraryProviderProps {
 }
 
 export function MediaLibraryProvider({ children }: MediaLibraryProviderProps) {
-  const [audios, setAudios] = useState<AudioItem[]>(() => seededAudios);
+  const [audios, setAudios] = useState<AudioItem[]>([]);
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [images, setImages] = useState<ImageItem[]>([]);
   const [syncedSources, setSyncedSources] = useState<MediaSource[]>([]);
@@ -115,7 +99,7 @@ export function MediaLibraryProvider({ children }: MediaLibraryProviderProps) {
   }, []);
 
   const addAudios = useCallback((items: AudioItem[]) => {
-    setAudios(prev => normalizeAudioLibrary(mergeUniqueItems(prev.filter(item => item.origin !== 'seed'), items)));
+    setAudios(prev => normalizeAudioLibrary(mergeUniqueItems(prev, items)));
   }, []);
 
   const removeAudio = useCallback((id: string) => {
@@ -157,7 +141,7 @@ export function MediaLibraryProvider({ children }: MediaLibraryProviderProps) {
     revokeObjectUrlsForMediaItems(removedImages);
 
     setAudios(prev => normalizeAudioLibrary([
-      ...prev.filter(item => item.sourceId !== sourceId && item.origin !== 'seed'),
+      ...prev.filter(item => item.sourceId !== sourceId),
       ...snapshot.audios,
     ]));
     setVideos(prev => [

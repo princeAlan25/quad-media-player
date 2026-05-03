@@ -59,7 +59,7 @@ const Mp3PlayerContent = ({ initialAudios }: Mp3PlayerContentProps) => {
       keywords: [file.name.toLowerCase()],
     }));
 
-    addAudios(uploadedAudios, playlist.filter(audio => audio.origin !== 'seed').length === 0);
+    addAudios(uploadedAudios, playlist.length === 0);
   }, [addAudios, playlist]);
 
   const handleSelectAudio = useCallback((audio: AudioItem) => {
