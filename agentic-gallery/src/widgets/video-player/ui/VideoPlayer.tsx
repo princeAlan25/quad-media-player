@@ -221,13 +221,13 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
 
   if (!currentVideo) {
     return (
-      <div className="neo-playlist-panel w-full h-full max-w-full max-h-full overflow-scroll flex flex-col items-center justify-center rounded-4xl max-sm:rounded-md max-sm*:scale-90">
+      <div className="neo-playlist-panel w-full h-full max-w-full max-h-full overflow-scroll flex flex-col items-center justify-center rounded-4xl max-sm:rounded-md">
         <div className="text-center space-y-4">
           <div className="neo-main-control w-24 h-24 mx-auto rounded-full flex items-center justify-center">
             <span className="text-xl font-semibold tracking-wide text-[#7d126f]">Upload Videos</span>
           </div>
           <h3 className="text-[#3f4b5f] text-xl font-semibold">No Video Selected</h3>
-          <p className="text-[#6f7b90] ">Upload one or more videos to get started</p>
+          <p className="text-[#6f7b90]">Upload one or more videos to get started</p>
           <div className="pt-4">
             <VideoFileUpload onFilesSelected={handleFilesSelected} />
           </div>
@@ -239,17 +239,17 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-row w-full h-full bg-black rounded-md overflow-hidden group max-sm:overflow-y-scroll max-sm:rounded-md max-sm:p-0 max-sm:max-h-[96vh] max-sm:overflow-hidden ma[...]"
+      className="relative flex flex-col lg:flex-row w-full h-full bg-black rounded-md overflow-hidden group"
       onMouseMove={showControlsTemporarily}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
       {/* ── Left column: scrollable, video sticky at top ── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-scroll max-xl:flex max-xl:flex-col max-xl:overflow-y-auto max-lg:contents max-sm:contents">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto lg:overflow-y-scroll">
 
-        {/* Video — sticky at top on desktop */}
+        {/* Video — sticky at top on all screens */}
         <div
           key={currentVideo?.id || 'empty'}
-          className="sticky top-0 z-10 shrink-0 aspect-video bg-black rounded-md transition-opacity duration-300 max-sm:sticky max-sm:top-0 max-sm:z-1 max-sm:mb-2 max-lg:sticky max-lg:top-0 max-l[...]"
+          className="sticky top-0 z-10 shrink-0 aspect-video bg-black rounded-none lg:rounded-md transition-opacity duration-300"
         >
           {currentVideo?.sourceId === 'youtube' ? (
             <iframe
@@ -268,8 +268,8 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
             />
           )}
 
-          {/* Trash + Upload — top-left of video on desktop; top-right overlay on iPad/mobile */}
-          <div className={`absolute top-2 left-2 z-20 flex items-center gap-2 transition-opacity duration-300 max-sm:top-2 max-sm:right-2 max-sm:left-auto max-lg:top-2 max-lg:right-2 max-lg:left-[...]`}>
+          {/* Trash + Upload — top-right on mobile/tablet; top-left on desktop */}
+          <div className="absolute top-2 right-2 lg:left-2 lg:right-auto z-20 flex items-center gap-2 transition-opacity duration-300">
             {currentVideo && (
               <button
                 onClick={handleRemoveCurrentVideo}
@@ -283,31 +283,35 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
           </div>
         </div>
 
-        {/* Now-playing title — Desktop (Desktop only: lg and above) */}
+        {/* Now-playing title — Desktop (lg and above) */}
         {!isFullscreen && (
-          <div className="hidden lg:block shrink-0 px-4 pt-3 pb-2">
-            <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Now Playing</p>
-            <p className="text-white text-base font-semibold line-clamp-2 break-words">{currentVideo?.name ?? ''}</p>
+          <div className="hidden lg:block shrink-0 px-4 py-3 border-b border-white/10">
+            <p className="text-white/40 text-xs font-semibold uppercase tracking-widest mb-1">Now Playing</p>
+            <p className="text-white text-base font-semibold line-clamp-2 break-words">
+              {currentVideo?.name ?? 'Unknown'}
+            </p>
           </div>
         )}
 
-        {/* Now-playing title — Tablet (iPad/Tablet: md-lg range) */}
-        <div className="hidden md:flex lg:hidden shrink-0 px-4 py-3 bg-gradient-to-b from-black/60 to-black/40 backdrop-blur-sm border-b border-white/10">
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-white/60 text-xs font-medium uppercase tracking-wider shrink-0">Now Playing</span>
-            <span className="text-white text-sm font-semibold truncate flex-1">{currentVideo?.name ?? ''}</span>
-          </div>
+        {/* Now-playing title — Tablet (md to lg) */}
+        <div className="hidden md:flex lg:hidden shrink-0 px-4 py-3 bg-black/80 backdrop-blur-sm border-b border-white/10 items-center gap-3">
+          <span className="text-white/50 text-xs font-medium uppercase tracking-wider shrink-0">Now Playing:</span>
+          <span className="text-white text-sm font-semibold truncate flex-1">
+            {currentVideo?.name ?? 'Unknown'}
+          </span>
         </div>
 
-        {/* Now-playing title — Mobile (sm-md: small screens) */}
-        <div className="md:hidden flex items-center gap-2 px-3 py-2 bg-gradient-to-b from-black/70 to-black/50 backdrop-blur-md border-b border-white/5 shrink-0">
-          <span className="text-white/50 text-xs font-medium uppercase tracking-wider shrink-0">Now</span>
-          <span className="text-white text-xs font-semibold truncate flex-1">{currentVideo?.name ?? ''}</span>
+        {/* Now-playing title — Mobile (below md) */}
+        <div className="md:hidden flex shrink-0 px-3 py-2 bg-gradient-to-b from-black/70 to-black/50 backdrop-blur-sm border-b border-white/5 items-center gap-2 min-w-0">
+          <span className="text-white/50 text-xs font-medium uppercase tracking-wider shrink-0">Now:</span>
+          <span className="text-white text-xs font-semibold truncate flex-1">
+            {currentVideo?.name ?? 'Unknown'}
+          </span>
         </div>
 
-        {/* VideoPlayerControls — desktop: below buttons; iPad/mobile: hidden */}
+        {/* VideoPlayerControls — visible on lg and above */}
         {currentVideo?.sourceId !== 'youtube' && (
-          <div className="mt-auto shrink-0 transition-opacity duration-300">
+          <div className="mt-auto shrink-0 transition-opacity duration-300 hidden lg:block">
             <VideoPlayerControls
               isPlaying={isPlaying}
               isMuted={isMuted}
@@ -326,14 +330,18 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
         )}
       </div>{/* end left column */}
 
-      {/* ── Right column: scrollable thumbnail rail ── */}
+      {/* ── Right column: scrollable thumbnail rail — visible only on lg and above ── */}
       {videos.length > 0 && (
-        <div className="w-44 flex flex-col shrink-0 overflow-y-auto border-l border-white/10 gap-2 p-2 max-sm:relative max-sm:shadow-2xl max-sm:w-full max-sm:right-0 max-sm:p-2 max-sm:overflow-y-[...]">
+        <div className="hidden lg:flex w-44 flex-col shrink-0 overflow-y-auto border-l border-white/10 gap-2 p-2">
           {videos.map((v, idx) => (
             <button
               key={v.id}
               onClick={() => handleSelectVideo(idx)}
-              className={`relative w-full flex flex-col items-center gap-1 rounded-md overflow-hidden border transition-all max-sm:opacity-60 max-lg:opacity-85 max-xl:opacity-85 lg:min-h-30 ${idx[...]`}
+              className={`relative w-full flex flex-col items-center gap-1 rounded-md overflow-hidden border transition-all min-h-30 ${
+                idx === currentIndex
+                  ? 'border-emerald-400 bg-white/10 shadow-lg shadow-green-500/20'
+                  : 'border-white/15 bg-white/5 hover:bg-white/10'
+              }`}
             >
               <span
                 onClick={(e) => {
@@ -341,7 +349,7 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
                   e.stopPropagation();
                   handleRemoveVideo(v.id);
                 }}
-                className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white/80 hover:bg-red-600 hover:text-white transition-colors max-lg:p-1.5 max-lg:z-10 max-xl:p-1.5 max-xl:z-10"
+                className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white/80 hover:bg-red-600 hover:text-white transition-colors z-10"
                 title="Move to trash"
               >
                 <FaTrash className="text-[10px]" />
@@ -350,17 +358,17 @@ const VideoPlayerContent = ({ initialVideoUrl }: VideoPlayerProps) => {
                 <img
                   src={`https://i.ytimg.com/vi/${v.relativePath}/hqdefault.jpg`}
                   alt={v.name}
-                  className="w-full h-20 object-cover pointer-events-none max-lg:h-auto max-lg:aspect-video max-xl:h-auto max-xl:aspect-video"
+                  className="w-full h-20 object-cover pointer-events-none"
                   loading="lazy"
                 />
               ) : (
                 <video
                   src={v.url}
-                  className="w-full h-20 object-cover pointer-events-none max-lg:h-auto max-lg:aspect-video max-xl:h-auto max-xl:aspect-video"
+                  className="w-full h-20 object-cover pointer-events-none"
                   muted
                 />
               )}
-              <span className={`px-2 pb-2 text-[11px] text-white/80 truncate w-full max-sm:text-left max-lg:text-sm max-lg:text-left max-lg:px-3 max-lg:pt-1 max-lg:text-white/90 max-xl:text-sm ma[...]`}>
+              <span className="px-2 pb-2 text-[11px] text-white/80 truncate w-full text-left">
                 {v.name}
               </span>
             </button>
