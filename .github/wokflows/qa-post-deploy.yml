@@ -1,0 +1,39 @@
+name: QA Agent - Post-Deploy
+
+# Fires after a merge to main (i.e. once the Netlify production deploy has had
+# a chance to roll out). The QA repo listens for `qa-post-deploy` and runs the
+# read-only smoke suite against the live preview URL.
+#
+# If you wire a real Netlify deploy webhook later, swap the `push` trigger for
+# `repository_dispatch` types: [netlify-deploy-succeeded] so this only fires
+# once the deploy is actually live, not at merge time.
+#
+# Required secret:
+#   QA_DISPATCH_TOKEN  — same PAT as above.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  dispatch-qa:
+    name: Dispatch QA Agent
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Netlify to finish deploying
+        # Crude but adequate: give Netlify ~2 minutes to build + publish the
+        # main branch before the QA agent hits the URL. Replace with a proper
+        # readiness probe (curl loop on a /version endpoint) when one exists.
+        run: sleep 120
+
+      - name: Fire qa-post-deploy dispatch at me-prince-quality
+        env:
+          GH_TOKEN: ${{ secrets.QA_DISPATCH_TOKEN }}
+          SHA: ${{ github.sha }}
+        run: |
+          gh api repos/princeAlan25/me-prince-quality/dispatches \
+            -f event_type=qa-post-deploy \
+            -f "client_payload[sha]=${SHA}" \
+            -f "client_payload[environment]=production"
+          echo "Dispatched qa-post-deploy for ${SHA}"
