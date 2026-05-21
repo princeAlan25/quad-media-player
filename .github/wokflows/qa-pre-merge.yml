@@ -1,0 +1,31 @@
+name: QA Agent - Pre-Merge
+
+# Fires on every PR push. The QA repo (princeAlan25/me-prince-quality) listens
+# for `qa-run` repository_dispatch and runs the smoke suite against this PR's
+# Netlify preview, then writes back a commit status + PR comment.
+#
+# Required secret (in this repo's Settings → Secrets → Actions):
+#   QA_DISPATCH_TOKEN  — PAT with `repo` scope, or fine-grained token with
+#                        contents:read + actions:write on me-prince-quality
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  dispatch-qa:
+    name: Dispatch QA Agent
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fire qa-run dispatch at me-prince-quality
+        env:
+          GH_TOKEN: ${{ secrets.QA_DISPATCH_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          gh api repos/princeAlan25/me-prince-quality/dispatches \
+            -f event_type=qa-run \
+            -f "client_payload[pr_number]=${PR_NUMBER}" \
+            -f "client_payload[sha]=${SHA}"
+          echo "Dispatched qa-run for PR #${PR_NUMBER} @ ${SHA}"
