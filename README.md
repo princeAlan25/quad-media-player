@@ -183,7 +183,7 @@ The legacy branch is preserved as a reference for the original media-handling lo
 1. Fork the repo and create a branch off `main`.
 2. Make your changes — follow existing FSD layering on the frontend.
 3. Run `npm run lint` (frontend) before pushing.
-4. Open a PR with a clear description of the change. 
+4. Open a PR with a clear description of the change.
 
 ---
 
