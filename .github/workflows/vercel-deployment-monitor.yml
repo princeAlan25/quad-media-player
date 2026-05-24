@@ -105,7 +105,7 @@ jobs:
         with:
           # ⚠️  CHANGE the value below to your notification repo
           #     e.g.  your-org/suite-notifications
-          token: ${{ secrets.DISPATCH_TOKEN }}
-          repository: YOUR_ORG/YOUR_NOTIFICATION_REPO   # ← update this
+          token: ${{ secrets.QA_DISPATCH_TOKEN }}
+          repository: princeAlan25/learnershood-quality   # ← update this
           event-type: vercel-deployment-status
           client-payload: ${{ steps.payload.outputs.json }}
