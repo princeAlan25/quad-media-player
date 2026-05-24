@@ -48,7 +48,10 @@ jobs:
     runs-on: ubuntu-latest
 
     if: >
-      contains(fromJSON('["success","failure","error"]'), github.event.deployment_status.state)
+      contains(
+        fromJSON('["success","failure","error"]'),
+        github.event.deployment_status.state
+      )
 
     steps:
 
@@ -59,6 +62,7 @@ jobs:
       - name: Resolve associated Pull Request
         id: pr
         uses: actions/github-script@v7
+
         with:
           script: |
             const sha = context.payload.deployment.sha;
@@ -91,12 +95,16 @@ jobs:
       # ────────────────────────────────────────────────────────
 
       - name: Mark smoke suite as pending
+
         if: >
           steps.pr.outputs.found == 'true' &&
           steps.pr.outputs.merged != 'true'
+
         uses: actions/github-script@v7
+
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
           script: |
             await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
@@ -121,10 +129,13 @@ jobs:
       # ────────────────────────────────────────────────────────
 
       - name: Build smoke dispatch payload
+
         if: >
           steps.pr.outputs.found == 'true' &&
           steps.pr.outputs.merged != 'true'
+
         id: payload
+
         run: |
 
           STATE="${{ github.event.deployment_status.state }}"
@@ -217,10 +228,13 @@ jobs:
       # ────────────────────────────────────────────────────────
 
       - name: Dispatch smoke suite
+
         if: >
           steps.pr.outputs.found == 'true' &&
           steps.pr.outputs.merged != 'true'
+
         uses: peter-evans/repository-dispatch@v3
+
         with:
           token: ${{ secrets.QA_DISPATCH_TOKEN }}
           repository: princeAlan25/learnershood-quality
@@ -237,9 +251,10 @@ jobs:
 
     if: >
       github.event.deployment_status.state == 'success' &&
-      contains(
-        toLower(github.event.deployment.environment),
-        'production'
+      (
+        contains(github.event.deployment.environment, 'production') ||
+        contains(github.event.deployment.environment, 'Production') ||
+        contains(github.event.deployment.environment, 'PRODUCTION')
       )
 
     steps:
@@ -251,6 +266,7 @@ jobs:
       - name: Resolve merged Pull Request
         id: pr
         uses: actions/github-script@v7
+
         with:
           script: |
             const sha = context.payload.deployment.sha;
@@ -289,8 +305,11 @@ jobs:
       # ────────────────────────────────────────────────────────
 
       - name: Build post deploy payload
+
         if: steps.pr.outputs.found == 'true'
+
         id: payload
+
         run: |
 
           SHA="${{ github.event.deployment.sha }}"
@@ -360,8 +379,11 @@ jobs:
       # ────────────────────────────────────────────────────────
 
       - name: Dispatch post deploy suite
+
         if: steps.pr.outputs.found == 'true'
+
         uses: peter-evans/repository-dispatch@v3
+
         with:
           token: ${{ secrets.QA_DISPATCH_TOKEN }}
           repository: princeAlan25/learnershood-quality
