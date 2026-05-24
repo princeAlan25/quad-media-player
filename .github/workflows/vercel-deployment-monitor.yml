@@ -1,114 +1,369 @@
 # ──────────────────────────────────────────────────────────────
 # Product Repository — Vercel Deployment Monitor
 # ──────────────────────────────────────────────────────────────
-# Listens for Vercel preview deployment outcomes (success / failure)
-# and dispatches structured payloads to the notification repository
-# which forwards them to Slack.
 #
-# Required secrets:
-#   DISPATCH_TOKEN — A GitHub PAT (classic) with `repo` scope,
-#                    or a fine-grained token with "Contents: write"
-#                    permission on the NOTIFICATION repo.
+# Responsibilities
 # ──────────────────────────────────────────────────────────────
+# 1. Listen for Vercel deployment events
+# 2. Resolve the associated Pull Request
+# 3. Block merge with pending QA status
+# 4. Dispatch preview smoke suite to QA repository
+# 5. Dispatch production post-deploy suite
+#
+# Required Secrets
+# ──────────────────────────────────────────────────────────────
+#
+# QA_DISPATCH_TOKEN
+#   Fine-grained PAT or GitHub App token with access to:
+#   princeAlan25/learnershood-quality
+#
+# Required Branch Protection
+# ──────────────────────────────────────────────────────────────
+#
+# Require status checks before merging:
+#
+#   Learnershood QA / smoke
+#
+# ──────────────────────────────────────────────────────────────
+
 name: Vercel Deployment Monitor
+
 on:
   deployment_status:
-  
+
 permissions:
   pull-requests: read
   deployments: read
   contents: read
-  
+  statuses: write
+
 jobs:
-  dispatch-notification:
+
+  # ────────────────────────────────────────────────────────────
+  # Preview Deployment → Smoke Suite
+  # ────────────────────────────────────────────────────────────
+
+  dispatch-preview-smoke:
+    name: Dispatch Preview Smoke Suite
     runs-on: ubuntu-latest
-    # Only react to terminal deployment states from Vercel
+
     if: >
       contains(fromJSON('["success","failure","error"]'), github.event.deployment_status.state)
+
     steps:
-      # ── 1. Resolve the Pull Request tied to this deployment ──
+
+      # ────────────────────────────────────────────────────────
+      # Resolve PR Associated With Deployment SHA
+      # ────────────────────────────────────────────────────────
+
       - name: Resolve associated Pull Request
         id: pr
         uses: actions/github-script@v7
         with:
           script: |
             const sha = context.payload.deployment.sha;
-            const { data: pulls } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: sha,
-            });
+
+            const { data: pulls } =
+              await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: sha,
+              });
+
             if (pulls.length === 0) {
-              core.setOutput('found', 'false');
-              core.info(`No open PR found for commit ${sha} — skipping.`);
+              core.setOutput("found", "false");
+              core.info(`No PR found for commit ${sha}`);
               return;
             }
+
             const pr = pulls[0];
-            core.setOutput('found', 'true');
-            core.setOutput('number', pr.number);
-            core.setOutput('title', pr.title);
-            core.setOutput('author', pr.user.login);
-            core.setOutput('url', pr.html_url);
-      # ── 2. Build the payload ─────────────────────────────────
-      - name: Build dispatch payload
-        if: steps.pr.outputs.found == 'true'
+
+            core.setOutput("found", "true");
+            core.setOutput("number", String(pr.number));
+            core.setOutput("title", pr.title);
+            core.setOutput("author", pr.user.login);
+            core.setOutput("url", pr.html_url);
+            core.setOutput("merged", pr.merged_at ? "true" : "false");
+
+      # ────────────────────────────────────────────────────────
+      # Mark Smoke Suite As Pending
+      # Blocks PR merge until QA repo reports success/failure
+      # ────────────────────────────────────────────────────────
+
+      - name: Mark smoke suite as pending
+        if: >
+          steps.pr.outputs.found == 'true' &&
+          steps.pr.outputs.merged != 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.payload.deployment.sha,
+
+              state: "pending",
+
+              context: "Learnershood QA / smoke",
+
+              description:
+                "Smoke suite running in learnershood-quality repository...",
+
+              target_url:
+                "https://github.com/princeAlan25/learnershood-quality/actions",
+            });
+
+      # ────────────────────────────────────────────────────────
+      # Build Preview Smoke Dispatch Payload
+      # IMPORTANT:
+      # Keep top-level payload keys <= 10
+      # ────────────────────────────────────────────────────────
+
+      - name: Build smoke dispatch payload
+        if: >
+          steps.pr.outputs.found == 'true' &&
+          steps.pr.outputs.merged != 'true'
         id: payload
         run: |
+
           STATE="${{ github.event.deployment_status.state }}"
           SHA="${{ github.event.deployment.sha }}"
+          SHORT_SHA=$(echo "$SHA" | cut -c1-7)
+
           PR_NUMBER="${{ steps.pr.outputs.number }}"
           PR_TITLE="${{ steps.pr.outputs.title }}"
           PR_AUTHOR="${{ steps.pr.outputs.author }}"
           PR_URL="${{ steps.pr.outputs.url }}"
-          REPO="${{ github.repository }}"
+
+          REPOSITORY="${{ github.repository }}"
+          OWNER="${{ github.repository_owner }}"
+
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          ENVIRONMENT="${{ github.event.deployment.environment }}"
+
           if [ "$STATE" = "success" ]; then
             STATUS="success"
             EMOJI="✅"
-            PREVIEW_URL="${{ github.event.deployment_status.target_url }}"
+            DEPLOYMENT_URL="${{ github.event.deployment_status.target_url }}"
             MESSAGE="${EMOJI} Vercel preview deployment succeeded — preview is live."
           else
             STATUS="failure"
             EMOJI="🚨"
-            PREVIEW_URL=""
-            MESSAGE="${EMOJI} Vercel infrastructure could not provide the preview URL — code breaks detected."
+            DEPLOYMENT_URL=""
+            MESSAGE="${EMOJI} Preview deployment failed."
           fi
-          # Write multiline JSON to GITHUB_OUTPUT safely
+
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+
           {
             echo "json<<${EOF}"
+
             jq -n \
-              --arg status      "$STATUS" \
-              --arg emoji       "$EMOJI" \
-              --arg message     "$MESSAGE" \
-              --arg pr_number   "$PR_NUMBER" \
-              --arg pr_title    "$PR_TITLE" \
-              --arg pr_author   "$PR_AUTHOR" \
-              --arg pr_url      "$PR_URL" \
-              --arg sha         "$SHA" \
-              --arg preview_url "$PREVIEW_URL" \
-              --arg repo        "$REPO" \
+              --arg status "$STATUS" \
+              --arg environment "$ENVIRONMENT" \
+              --arg deployment_url "$DEPLOYMENT_URL" \
+              --arg sha "$SHA" \
+              --arg short_sha "$SHORT_SHA" \
+              --arg branch "$BRANCH" \
+              --arg pr_number "$PR_NUMBER" \
+              --arg pr_title "$PR_TITLE" \
+              --arg pr_author "$PR_AUTHOR" \
+              --arg pr_url "$PR_URL" \
+              --arg repository "$REPOSITORY" \
+              --arg owner "$OWNER" \
+              --arg emoji "$EMOJI" \
+              --arg message "$MESSAGE" \
               '{
-                status:      $status,
-                emoji:       $emoji,
-                message:     $message,
-                pr_number:   $pr_number,
-                pr_title:    $pr_title,
-                pr_author:   $pr_author,
-                pr_url:      $pr_url,
-                sha:         $sha,
-                preview_url: $preview_url,
-                repo:        $repo
+                deployment: {
+                  status: $status,
+                  environment: $environment,
+                  url: $deployment_url,
+                  sha: $sha,
+                  short_sha: $short_sha,
+                  branch: $branch
+                },
+
+                pull_request: {
+                  number: $pr_number,
+                  title: $pr_title,
+                  author: $pr_author,
+                  url: $pr_url
+                },
+
+                repository: {
+                  owner: $owner,
+                  full_name: $repository
+                },
+
+                notification: {
+                  emoji: $emoji,
+                  message: $message
+                },
+
+                suite: {
+                  name: "smoke",
+                  trigger: "preview",
+                  mode: "blocking"
+                }
               }'
+
             echo "${EOF}"
+
           } >> "$GITHUB_OUTPUT"
-      # ── 3. Dispatch to the notification repository ───────────
-      - name: Dispatch to notification repository
+
+      # ────────────────────────────────────────────────────────
+      # Dispatch Smoke Suite To QA Repository
+      # ────────────────────────────────────────────────────────
+
+      - name: Dispatch smoke suite
+        if: >
+          steps.pr.outputs.found == 'true' &&
+          steps.pr.outputs.merged != 'true'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.QA_DISPATCH_TOKEN }}
+          repository: princeAlan25/learnershood-quality
+          event-type: product-pr-preview-ready
+          client-payload: ${{ steps.payload.outputs.json }}
+
+  # ────────────────────────────────────────────────────────────
+  # Production Deployment → Post Deploy Suite
+  # ────────────────────────────────────────────────────────────
+
+  dispatch-post-deploy:
+    name: Dispatch Post Deploy Suite
+    runs-on: ubuntu-latest
+
+    if: >
+      github.event.deployment_status.state == 'success' &&
+      contains(
+        toLower(github.event.deployment.environment),
+        'production'
+      )
+
+    steps:
+
+      # ────────────────────────────────────────────────────────
+      # Resolve Merged PR
+      # ────────────────────────────────────────────────────────
+
+      - name: Resolve merged Pull Request
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.payload.deployment.sha;
+
+            const { data: pulls } =
+              await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: sha,
+              });
+
+            if (pulls.length === 0) {
+              core.setOutput("found", "false");
+              return;
+            }
+
+            const mergedPr = pulls.find(
+              pr => pr.merged_at
+            );
+
+            if (!mergedPr) {
+              core.setOutput("found", "false");
+              return;
+            }
+
+            core.setOutput("found", "true");
+            core.setOutput("number", String(mergedPr.number));
+            core.setOutput("title", mergedPr.title);
+            core.setOutput("author", mergedPr.user.login);
+            core.setOutput("url", mergedPr.html_url);
+
+      # ────────────────────────────────────────────────────────
+      # Build Post Deploy Payload
+      # IMPORTANT:
+      # Keep top-level payload keys <= 10
+      # ────────────────────────────────────────────────────────
+
+      - name: Build post deploy payload
+        if: steps.pr.outputs.found == 'true'
+        id: payload
+        run: |
+
+          SHA="${{ github.event.deployment.sha }}"
+          SHORT_SHA=$(echo "$SHA" | cut -c1-7)
+
+          DEPLOYMENT_URL="${{ github.event.deployment_status.target_url }}"
+          ENVIRONMENT="${{ github.event.deployment.environment }}"
+
+          BRANCH="${{ github.ref_name }}"
+
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+
+          {
+            echo "json<<${EOF}"
+
+            jq -n \
+              --arg deployment_url "$DEPLOYMENT_URL" \
+              --arg environment "$ENVIRONMENT" \
+              --arg sha "$SHA" \
+              --arg short_sha "$SHORT_SHA" \
+              --arg branch "$BRANCH" \
+              --arg pr_number "${{ steps.pr.outputs.number }}" \
+              --arg pr_title "${{ steps.pr.outputs.title }}" \
+              --arg pr_author "${{ steps.pr.outputs.author }}" \
+              --arg pr_url "${{ steps.pr.outputs.url }}" \
+              --arg repository "${{ github.repository }}" \
+              --arg owner "${{ github.repository_owner }}" \
+              --arg message "Production deployment successful — triggering post deploy QA suite." \
+              '{
+                deployment: {
+                  environment: $environment,
+                  url: $deployment_url,
+                  sha: $sha,
+                  short_sha: $short_sha,
+                  branch: $branch
+                },
+
+                pull_request: {
+                  number: $pr_number,
+                  title: $pr_title,
+                  author: $pr_author,
+                  url: $pr_url
+                },
+
+                repository: {
+                  owner: $owner,
+                  full_name: $repository
+                },
+
+                notification: {
+                  message: $message
+                },
+
+                suite: {
+                  name: "post-deploy",
+                  trigger: "production",
+                  mode: "non-blocking"
+                }
+              }'
+
+            echo "${EOF}"
+
+          } >> "$GITHUB_OUTPUT"
+
+      # ────────────────────────────────────────────────────────
+      # Dispatch Post Deploy Suite
+      # ────────────────────────────────────────────────────────
+
+      - name: Dispatch post deploy suite
         if: steps.pr.outputs.found == 'true'
         uses: peter-evans/repository-dispatch@v3
         with:
-          # ⚠️  CHANGE the value below to your notification repo
-          #     e.g.  your-org/suite-notifications
           token: ${{ secrets.QA_DISPATCH_TOKEN }}
-          repository: princeAlan25/learnershood-quality   # ← update this
-          event-type: vercel-deployment-status
+          repository: princeAlan25/learnershood-quality
+          event-type: product-post-deploy-ready
           client-payload: ${{ steps.payload.outputs.json }}
