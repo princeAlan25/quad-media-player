@@ -85,7 +85,6 @@ jobs:
               --arg pr_author   "$PR_AUTHOR" \
               --arg pr_url      "$PR_URL" \
               --arg sha         "$SHA" \
-              --arg short_sha   "$SHORT_SHA" \
               --arg preview_url "$PREVIEW_URL" \
               --arg repo        "$REPO" \
               '{
@@ -97,7 +96,6 @@ jobs:
                 pr_author:   $pr_author,
                 pr_url:      $pr_url,
                 sha:         $sha,
-                short_sha:   $short_sha,
                 preview_url: $preview_url,
                 repo:        $repo
               }'
