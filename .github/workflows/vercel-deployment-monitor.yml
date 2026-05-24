@@ -13,6 +13,12 @@
 name: Vercel Deployment Monitor
 on:
   deployment_status:
+  
+permissions:
+  pull-requests: read
+  deployments: read
+  contents: read
+  
 jobs:
   dispatch-notification:
     runs-on: ubuntu-latest
