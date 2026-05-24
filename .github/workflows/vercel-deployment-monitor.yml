@@ -1,0 +1,111 @@
+# ──────────────────────────────────────────────────────────────
+# Product Repository — Vercel Deployment Monitor
+# ──────────────────────────────────────────────────────────────
+# Listens for Vercel preview deployment outcomes (success / failure)
+# and dispatches structured payloads to the notification repository
+# which forwards them to Slack.
+#
+# Required secrets:
+#   DISPATCH_TOKEN — A GitHub PAT (classic) with `repo` scope,
+#                    or a fine-grained token with "Contents: write"
+#                    permission on the NOTIFICATION repo.
+# ──────────────────────────────────────────────────────────────
+name: Vercel Deployment Monitor
+on:
+  deployment_status:
+jobs:
+  dispatch-notification:
+    runs-on: ubuntu-latest
+    # Only react to terminal deployment states from Vercel
+    if: >
+      contains(fromJSON('["success","failure","error"]'), github.event.deployment_status.state)
+    steps:
+      # ── 1. Resolve the Pull Request tied to this deployment ──
+      - name: Resolve associated Pull Request
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.payload.deployment.sha;
+            const { data: pulls } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: sha,
+            });
+            if (pulls.length === 0) {
+              core.setOutput('found', 'false');
+              core.info(`No open PR found for commit ${sha} — skipping.`);
+              return;
+            }
+            const pr = pulls[0];
+            core.setOutput('found', 'true');
+            core.setOutput('number', pr.number);
+            core.setOutput('title', pr.title);
+            core.setOutput('author', pr.user.login);
+            core.setOutput('url', pr.html_url);
+      # ── 2. Build the payload ─────────────────────────────────
+      - name: Build dispatch payload
+        if: steps.pr.outputs.found == 'true'
+        id: payload
+        run: |
+          STATE="${{ github.event.deployment_status.state }}"
+          SHA="${{ github.event.deployment.sha }}"
+          SHORT_SHA="${SHA:0:7}"
+          PR_NUMBER="${{ steps.pr.outputs.number }}"
+          PR_TITLE="${{ steps.pr.outputs.title }}"
+          PR_AUTHOR="${{ steps.pr.outputs.author }}"
+          PR_URL="${{ steps.pr.outputs.url }}"
+          REPO="${{ github.repository }}"
+          if [ "$STATE" = "success" ]; then
+            STATUS="success"
+            EMOJI="✅"
+            PREVIEW_URL="${{ github.event.deployment_status.target_url }}"
+            MESSAGE="${EMOJI} Vercel preview deployment succeeded — preview is live."
+          else
+            STATUS="failure"
+            EMOJI="🚨"
+            PREVIEW_URL=""
+            MESSAGE="${EMOJI} Vercel infrastructure could not provide the preview URL — code breaks detected."
+          fi
+          # Write multiline JSON to GITHUB_OUTPUT safely
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          {
+            echo "json<<${EOF}"
+            jq -n \
+              --arg status      "$STATUS" \
+              --arg emoji       "$EMOJI" \
+              --arg message     "$MESSAGE" \
+              --arg pr_number   "$PR_NUMBER" \
+              --arg pr_title    "$PR_TITLE" \
+              --arg pr_author   "$PR_AUTHOR" \
+              --arg pr_url      "$PR_URL" \
+              --arg sha         "$SHA" \
+              --arg short_sha   "$SHORT_SHA" \
+              --arg preview_url "$PREVIEW_URL" \
+              --arg repo        "$REPO" \
+              '{
+                status:      $status,
+                emoji:       $emoji,
+                message:     $message,
+                pr_number:   $pr_number,
+                pr_title:    $pr_title,
+                pr_author:   $pr_author,
+                pr_url:      $pr_url,
+                sha:         $sha,
+                short_sha:   $short_sha,
+                preview_url: $preview_url,
+                repo:        $repo
+              }'
+            echo "${EOF}"
+          } >> "$GITHUB_OUTPUT"
+      # ── 3. Dispatch to the notification repository ───────────
+      - name: Dispatch to notification repository
+        if: steps.pr.outputs.found == 'true'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          # ⚠️  CHANGE the value below to your notification repo
+          #     e.g.  your-org/suite-notifications
+          token: ${{ secrets.DISPATCH_TOKEN }}
+          repository: YOUR_ORG/YOUR_NOTIFICATION_REPO   # ← update this
+          event-type: vercel-deployment-status
+          client-payload: ${{ steps.payload.outputs.json }}
