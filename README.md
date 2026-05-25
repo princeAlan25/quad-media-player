@@ -1,6 +1,6 @@
 # Quad-MediaPlayer
 
-> A universal media hub for **audio, video, images, and an AI agent** — one app, four ways to consume your content.
+> A universal media hub for **audio, video, images, and an AI agent** — one app, four ways to consume your content. 
 
 <p>
   <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white">
