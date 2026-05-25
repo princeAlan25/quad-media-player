@@ -375,6 +375,25 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       # ────────────────────────────────────────────────────────
+      # Mark Post Deploy Suite As Pending
+      # ────────────────────────────────────────────────────────
+      - name: Mark post deploy suite as pending
+        if: steps.pr.outputs.found == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.payload.deployment.sha,
+              state: "pending",
+              context: "Learnershood QA / post-deploy",
+              description: "Post-deploy suite running in QA repository...",
+              target_url: "https://github.com/princeAlan25/learnershood-quality/actions"
+            });
+
+      # ────────────────────────────────────────────────────────
       # Dispatch Post Deploy Suite
       # ────────────────────────────────────────────────────────
 
